@@ -67,6 +67,12 @@ pub fn run() {
             commands::auth::auth_lock,
             commands::auth::auth_change_password,
             commands::auth::auth_recover,
+            commands::pacientes::pacientes_listar,
+            commands::pacientes::paciente_obter,
+            commands::pacientes::paciente_criar,
+            commands::pacientes::paciente_atualizar,
+            commands::pacientes::paciente_definir_status,
+            commands::pacientes::paciente_excluir,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");

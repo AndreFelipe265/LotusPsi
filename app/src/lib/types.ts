@@ -31,6 +31,59 @@ export interface PacienteResumo {
   ultima_sessao?: string | null;
 }
 
+export interface Paciente {
+  id: string;
+  nome: string;
+  data_nascimento?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  nome_mae?: string | null;
+  nome_pai?: string | null;
+  responsavel_nome?: string | null;
+  responsavel_parentesco?: string | null;
+  responsavel_telefone?: string | null;
+  contato_emergencia_nome?: string | null;
+  contato_emergencia_telefone?: string | null;
+  documento?: string | null;
+  ocupacao?: string | null;
+  motivo_procura?: string | null;
+  modalidade?: ModalidadeAtendimento | null;
+  convenio_nome?: string | null;
+  valor_sessao_centavos?: number | null;
+  observacoes?: string | null;
+  status: StatusPaciente;
+  inativado_em?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+  total_sessoes: number;
+  ultima_sessao?: string | null;
+}
+
+export interface DadosPacienteInput {
+  nome: string;
+  data_nascimento?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  nome_mae?: string | null;
+  nome_pai?: string | null;
+  responsavel_nome?: string | null;
+  responsavel_parentesco?: string | null;
+  responsavel_telefone?: string | null;
+  contato_emergencia_nome?: string | null;
+  contato_emergencia_telefone?: string | null;
+  documento?: string | null;
+  ocupacao?: string | null;
+  motivo_procura?: string | null;
+  modalidade?: ModalidadeAtendimento | null;
+  convenio_nome?: string | null;
+  valor_sessao_centavos?: number | null;
+  observacoes?: string | null;
+}
+
 export interface FiltroPacientes {
   busca?: string;
   status?: StatusPaciente | "todos";

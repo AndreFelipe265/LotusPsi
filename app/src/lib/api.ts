@@ -1,10 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
+  DadosPacienteInput,
   ErroApi,
   FiltroPacientes,
+  Paciente,
   PacienteResumo,
   RespostaSetupAuth,
   StatusAuth,
+  StatusPaciente,
 } from "./types";
 
 export const EVENTO_SESSAO_BLOQUEADA = "lc:sessao-bloqueada";
@@ -99,5 +102,38 @@ export function pacientesListar(
   return invocarComando<PacienteResumo[]>("pacientes_listar", {
     busca: filtro?.busca,
     status: filtro?.status,
+  });
+}
+
+export function pacienteObter(id: string): Promise<Paciente> {
+  return invocarComando<Paciente>("paciente_obter", { id });
+}
+
+export function pacienteCriar(dados: DadosPacienteInput): Promise<Paciente> {
+  return invocarComando<Paciente>("paciente_criar", { dados });
+}
+
+export function pacienteAtualizar(
+  id: string,
+  dados: DadosPacienteInput,
+): Promise<Paciente> {
+  return invocarComando<Paciente>("paciente_atualizar", { id, dados });
+}
+
+export function pacienteDefinirStatus(
+  id: string,
+  status: StatusPaciente,
+): Promise<Paciente> {
+  return invocarComando<Paciente>("paciente_definir_status", { id, status });
+}
+
+export function pacienteExcluir(
+  id: string,
+  confirmacaoNome: string,
+): Promise<void> {
+  return invocarComando<void>("paciente_excluir", {
+    id,
+    confirmacaoNome,
+    confirmacao_nome: confirmacaoNome,
   });
 }
