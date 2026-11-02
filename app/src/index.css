@@ -5,8 +5,8 @@
 @layer base {
   html {
     font-size: 16px;
-    color: #3A2E36;
-    background-color: #FBF7F9;
+    color: #3a2e36;
+    background-color: #fbf7f9;
   }
 
   body {
@@ -15,7 +15,7 @@
     font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
     font-size: 1rem;
     line-height: 1.5;
-    color: #3A2E36;
-    background-color: #FBF7F9;
+    color: #3a2e36;
+    background-color: #fbf7f9;
   }
 }
