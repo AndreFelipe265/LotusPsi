@@ -1,15 +1,26 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { ErroApi, RespostaSetupAuth, StatusAuth } from "./types";
 
+export const EVENTO_SESSAO_BLOQUEADA = "lc:sessao-bloqueada";
+
 /**
  * Wrapper tipado para chamadas `invoke` ao backend Rust.
  * O frontend nunca acessa disco, banco ou chaves diretamente (Seção 3 da Fonte da Verdade).
+ * Todo comando de dados que retornar `Erro::Bloqueado` dispara o evento de bloqueio de sessão.
  */
 export async function invocarComando<T>(
   comando: string,
   args?: Record<string, unknown>,
 ): Promise<T> {
-  return invoke<T>(comando, args);
+  try {
+    return await invoke<T>(comando, args);
+  } catch (erro) {
+    const erroApi = extrairErroApi(erro);
+    if (erroApi.codigo === "BLOQUEADO" && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(EVENTO_SESSAO_BLOQUEADA));
+    }
+    throw erro;
+  }
 }
 
 /**
