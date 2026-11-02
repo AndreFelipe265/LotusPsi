@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, ConfirmDialog, Input, Modal, Toast } from "../components";
+import {
+  Button,
+  ConfirmDialog,
+  Input,
+  Modal,
+  SessaoModal,
+  Toast,
+} from "../components";
 import {
   extrairErroApi,
   pacienteDefinirStatus,
   pacienteExcluir,
   pacienteObter,
+  sessaoExcluir,
+  sessoesListar,
 } from "../lib/api";
 import {
   formatarDataBr,
@@ -13,13 +22,22 @@ import {
   formatarMoedaBr,
   formatarTelefoneBr,
 } from "../lib/format";
-import type { Paciente } from "../lib/types";
+import type { Paciente, Sessao } from "../lib/types";
+
+function ordenarSessoesDecrescente(lista: Sessao[]): Sessao[] {
+  return [...lista].sort((a, b) => {
+    const cmpData = b.data.localeCompare(a.data);
+    if (cmpData !== 0) return cmpData;
+    return b.criado_em.localeCompare(a.criado_em);
+  });
+}
 
 export function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [paciente, setPaciente] = useState<Paciente | null>(null);
+  const [sessoes, setSessoes] = useState<Sessao[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [erroMensagem, setErroMensagem] = useState<string | null>(null);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
@@ -34,15 +52,38 @@ export function PacientePerfil() {
   );
   const [processandoAcao, setProcessandoAcao] = useState<boolean>(false);
 
+  // Estado de sessões (T08, RN20–RN27)
+  const [modalSessaoAberto, setModalSessaoAberto] = useState<boolean>(false);
+  const [sessaoEmEdicao, setSessaoEmEdicao] = useState<Sessao | null>(null);
+  const [sessaoParaExcluir, setSessaoParaExcluir] = useState<Sessao | null>(
+    null,
+  );
+  const [excluindoSessao, setExcluindoSessao] = useState<boolean>(false);
+
   useEffect(() => {
     if (!id) return;
     let cancelado = false;
     setCarregando(true);
 
-    pacienteObter(id)
-      .then((dados) => {
+    Promise.all([
+      pacienteObter(id),
+      sessoesListar(id).catch(() => [] as Sessao[]),
+    ])
+      .then(([dadosPaciente, listaSessoes]) => {
         if (!cancelado) {
-          setPaciente(dados);
+          const sessoesValidas = Array.isArray(listaSessoes)
+            ? ordenarSessoesDecrescente(listaSessoes)
+            : [];
+          setSessoes(sessoesValidas);
+          if (sessoesValidas.length > 0) {
+            setPaciente({
+              ...dadosPaciente,
+              total_sessoes: sessoesValidas.length,
+              ultima_sessao: sessoesValidas[0].data,
+            });
+          } else {
+            setPaciente(dadosPaciente);
+          }
           setErroMensagem(null);
         }
       })
@@ -61,6 +102,63 @@ export function PacientePerfil() {
       cancelado = true;
     };
   }, [id]);
+
+  function sincronizarResumoSessoesNoPaciente(novasSessoes: Sessao[]) {
+    const ordenadas = ordenarSessoesDecrescente(novasSessoes);
+    setSessoes(ordenadas);
+    setPaciente((atual) =>
+      atual
+        ? {
+            ...atual,
+            total_sessoes: ordenadas.length,
+            ultima_sessao: ordenadas[0]?.data ?? null,
+          }
+        : null,
+    );
+  }
+
+  function abrirNovaSessao() {
+    setSessaoEmEdicao(null);
+    setModalSessaoAberto(true);
+  }
+
+  function abrirEditarSessao(sessao: Sessao) {
+    setSessaoEmEdicao(sessao);
+    setModalSessaoAberto(true);
+  }
+
+  function aoSalvarSessao(sessaoSalva: Sessao) {
+    const jaExistia = sessoes.some((s) => s.id === sessaoSalva.id);
+    const novasSessoes = jaExistia
+      ? sessoes.map((s) => (s.id === sessaoSalva.id ? sessaoSalva : s))
+      : [sessaoSalva, ...sessoes];
+
+    sincronizarResumoSessoesNoPaciente(novasSessoes);
+    setModalSessaoAberto(false);
+    setSessaoEmEdicao(null);
+    setToastSucesso(
+      jaExistia
+        ? "Sessão atualizada com sucesso."
+        : "Sessão registrada com sucesso.",
+    );
+  }
+
+  async function confirmarExclusaoSessao() {
+    if (!sessaoParaExcluir) return;
+    setExcluindoSessao(true);
+    setErroMensagem(null);
+    try {
+      await sessaoExcluir(sessaoParaExcluir.id);
+      const restantes = sessoes.filter((s) => s.id !== sessaoParaExcluir.id);
+      sincronizarResumoSessoesNoPaciente(restantes);
+      setSessaoParaExcluir(null);
+      setToastSucesso("Sessão excluída com sucesso.");
+    } catch (erro) {
+      setErroMensagem(extrairErroApi(erro).mensagem);
+    } finally {
+      setExcluindoSessao(false);
+    }
+  }
 
   async function alterarStatus(novoStatus: "ativo" | "inativo") {
     if (!paciente) return;
@@ -203,14 +301,7 @@ export function PacientePerfil() {
         </div>
 
         <div className="shrink-0">
-          <Button
-            variante="primario"
-            onClick={() => {
-              setToastSucesso(
-                "O registro de sessões será habilitado na próxima etapa (F4).",
-              );
-            }}
-          >
+          <Button variante="primario" onClick={abrirNovaSessao}>
             Nova sessão
           </Button>
         </div>
@@ -265,7 +356,7 @@ export function PacientePerfil() {
         </section>
       )}
 
-      {/* Área reservada para Sessões (RN19, RN27) */}
+      {/* Histórico compacto de Sessões (RN19, RN24–RN27) */}
       <section
         aria-label="Histórico de sessões"
         data-testid="secao-historico-sessoes"
@@ -286,22 +377,79 @@ export function PacientePerfil() {
               </strong>
             </p>
           </div>
-          <Button
-            variante="primario"
-            onClick={() => {
-              setToastSucesso(
-                "O registro de sessões será habilitado na próxima etapa (F4).",
-              );
-            }}
-          >
+          <Button variante="primario" onClick={abrirNovaSessao}>
             Nova sessão
           </Button>
         </div>
 
-        <div className="p-5 rounded-xl bg-fundo border border-rosa-claro text-base text-texto">
-          Nenhuma sessão registrada até o momento. Use o botão{" "}
-          <strong>Nova sessão</strong> acima para registrar um atendimento.
-        </div>
+        {sessoes.length === 0 ? (
+          <div className="p-5 rounded-xl bg-fundo border border-rosa-claro text-base text-texto">
+            Nenhuma sessão registrada até o momento. Use o botão{" "}
+            <strong>Nova sessão</strong> acima para registrar um atendimento.
+          </div>
+        ) : (
+          <ul
+            data-testid="lista-historico-sessoes"
+            className="space-y-3"
+            aria-label="Lista de sessões registradas"
+          >
+            {sessoes.map((sessao) => {
+              const foiEditada =
+                Boolean(sessao.atualizado_em) &&
+                sessao.atualizado_em !== sessao.criado_em;
+
+              return (
+                <li
+                  key={sessao.id}
+                  data-testid={`item-sessao-${sessao.id}`}
+                  className="p-4 rounded-xl bg-fundo border border-rosa-claro space-y-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        data-testid={`data-sessao-${sessao.id}`}
+                        className="text-base font-bold text-malva"
+                      >
+                        {formatarDataBr(sessao.data)}
+                      </span>
+                      {foiEditada && (
+                        <span
+                          data-testid={`selo-editado-${sessao.id}`}
+                          className="text-base font-semibold text-lilas-acinzentado"
+                        >
+                          (editado)
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variante="contorno"
+                        className="px-3 py-1.5"
+                        onClick={() => abrirEditarSessao(sessao)}
+                        aria-label={`Editar sessão de ${formatarDataBr(sessao.data)}`}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variante="perigo"
+                        className="px-3 py-1.5"
+                        onClick={() => setSessaoParaExcluir(sessao)}
+                        aria-label={`Excluir sessão de ${formatarDataBr(sessao.data)}`}
+                      >
+                        Excluir
+                      </Button>
+                    </div>
+                  </div>
+
+                  <p className="text-base text-texto whitespace-pre-line">
+                    {sessao.resumo}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       {/* Dados cadastrais (RN19) */}
@@ -412,6 +560,36 @@ export function PacientePerfil() {
           </div>
         </div>
       </section>
+
+      {/* Modal T08 — Criar ou Editar Sessão */}
+      <SessaoModal
+        aberto={modalSessaoAberto}
+        pacienteId={paciente.id}
+        pacienteNome={paciente.nome}
+        sessaoParaEditar={sessaoEmEdicao}
+        aoFechar={() => {
+          setModalSessaoAberto(false);
+          setSessaoEmEdicao(null);
+        }}
+        aoSalva={aoSalvarSessao}
+      />
+
+      {/* Diálogo de confirmação para excluir sessão (RN26) */}
+      <ConfirmDialog
+        aberto={Boolean(sessaoParaExcluir)}
+        titulo="Excluir sessão"
+        mensagem="Tem certeza de que deseja excluir esta sessão? Esta ação não poderá ser desfeita."
+        detalheDestaque={
+          sessaoParaExcluir
+            ? `${formatarDataBr(sessaoParaExcluir.data)} — ${sessaoParaExcluir.resumo}`
+            : undefined
+        }
+        rotuloConfirmar="Sim, excluir sessão"
+        destrutivo={true}
+        carregando={excluindoSessao}
+        aoConfirmar={() => void confirmarExclusaoSessao()}
+        aoCancelar={() => setSessaoParaExcluir(null)}
+      />
 
       {/* Diálogo de confirmação para inativar paciente (RN14) */}
       <ConfirmDialog

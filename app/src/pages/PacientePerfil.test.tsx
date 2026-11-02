@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Paciente } from "../lib/types";
+import type { Paciente, Sessao } from "../lib/types";
 import { PacientePerfil } from "./PacientePerfil";
 
 const mockInvoke = vi.fn();
@@ -229,5 +229,185 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
       });
       expect(screen.getByText("Voltou Para Lista")).toBeInTheDocument();
     });
+  });
+
+  it("registra 3 sessões, exibe em ordem decrescente, edita 1 exibindo '(editado)', exclui 1 com confirmação e atualiza total e última sessão (F4-T3 — RN24–RN27)", async () => {
+    const sessoesBanco: Sessao[] = [];
+    let contadorId = 1;
+
+    mockInvoke.mockImplementation((cmd: string, args: unknown) => {
+      if (cmd === "paciente_obter") {
+        return Promise.resolve({
+          ...PACIENTE_BASE,
+          total_sessoes: sessoesBanco.length,
+          ultima_sessao: null,
+        });
+      }
+      if (cmd === "sessoes_listar") {
+        return Promise.resolve([...sessoesBanco]);
+      }
+      if (cmd === "sessao_criar") {
+        const { dados } = args as {
+          dados: { paciente_id: string; data: string; resumo: string };
+        };
+        const ts = `2026-11-02T15:00:0${contadorId}Z`;
+        const nova: Sessao = {
+          id: `s-${contadorId++}`,
+          paciente_id: dados.paciente_id,
+          data: dados.data,
+          resumo: dados.resumo,
+          criado_em: ts,
+          atualizado_em: ts,
+        };
+        sessoesBanco.push(nova);
+        return Promise.resolve(nova);
+      }
+      if (cmd === "sessao_atualizar") {
+        const { id, dados } = args as {
+          id: string;
+          dados: { data: string; resumo: string };
+        };
+        const idx = sessoesBanco.findIndex((s) => s.id === id);
+        const editada: Sessao = {
+          ...sessoesBanco[idx],
+          data: dados.data,
+          resumo: dados.resumo,
+          atualizado_em: "2026-11-02T16:30:00Z",
+        };
+        sessoesBanco[idx] = editada;
+        return Promise.resolve(editada);
+      }
+      if (cmd === "sessao_excluir") {
+        const { id } = args as { id: string };
+        const idx = sessoesBanco.findIndex((s) => s.id === id);
+        if (idx >= 0) sessoesBanco.splice(idx, 1);
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/pacientes/p-joao"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/pacientes/:id" element={<PacientePerfil />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "João da Conceição" }),
+      ).toBeInTheDocument();
+    });
+
+    const secaoSessoes = screen.getByTestId("secao-historico-sessoes");
+    expect(secaoSessoes).toHaveTextContent("Total de sessões: 0");
+    expect(secaoSessoes).toHaveTextContent("Última sessão: Nenhuma");
+
+    // 1. Registrar 1ª sessão (10/10/2026)
+    fireEvent.click(screen.getAllByRole("button", { name: "Nova sessão" })[0]);
+    fireEvent.change(screen.getByLabelText(/Data da sessão/i), {
+      target: { value: "10102026" },
+    });
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Primeira sessão: acolhimento inicial." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Primeira sessão: acolhimento inicial."),
+      ).toBeInTheDocument();
+    });
+
+    // 2. Registrar 2ª sessão (25/10/2026)
+    fireEvent.click(screen.getAllByRole("button", { name: "Nova sessão" })[0]);
+    fireEvent.change(screen.getByLabelText(/Data da sessão/i), {
+      target: { value: "25102026" },
+    });
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Segunda sessão: evolução semanal." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Segunda sessão: evolução semanal."),
+      ).toBeInTheDocument();
+    });
+
+    // 3. Registrar 3ª sessão (18/10/2026 — data intermediária para testar ordenação decrescente)
+    fireEvent.click(screen.getAllByRole("button", { name: "Nova sessão" })[0]);
+    fireEvent.change(screen.getByLabelText(/Data da sessão/i), {
+      target: { value: "18102026" },
+    });
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Terceira sessão lançada retroativamente." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Terceira sessão lançada retroativamente."),
+      ).toBeInTheDocument();
+    });
+
+    // Verifica total = 3, última = 25/10/2026 e ordem decrescente: 25/10 -> 18/10 -> 10/10 (RN24, RN27)
+    expect(secaoSessoes).toHaveTextContent("Total de sessões: 3");
+    expect(secaoSessoes).toHaveTextContent("Última sessão: 25/10/2026");
+
+    const itens = screen
+      .getByTestId("lista-historico-sessoes")
+      .querySelectorAll("li");
+    expect(itens.length).toBe(3);
+    expect(itens[0]).toHaveTextContent("25/10/2026");
+    expect(itens[1]).toHaveTextContent("18/10/2026");
+    expect(itens[2]).toHaveTextContent("10/10/2026");
+
+    // Nenhuma sessão tem selo "(editado)" ainda
+    expect(screen.queryByText("(editado)")).not.toBeInTheDocument();
+
+    // 4. Editar 1 sessão (a de 18/10/2026, id s-3) -> deve mostrar "(editado)" (RN25)
+    fireEvent.click(
+      screen.getByRole("button", { name: "Editar sessão de 18/10/2026" }),
+    );
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Sessão de 18/10 revisada e complementada." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Sessão de 18/10 revisada e complementada."),
+      ).toBeInTheDocument();
+      expect(screen.getByTestId("selo-editado-s-3")).toHaveTextContent(
+        "(editado)",
+      );
+    });
+
+    // 5. Excluir 1 sessão (a de 25/10/2026, id s-2) com diálogo de confirmação (RN26)
+    fireEvent.click(
+      screen.getByRole("button", { name: "Excluir sessão de 25/10/2026" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Excluir sessão" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sim, excluir sessão" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Segunda sessão: evolução semanal."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Total atualizado para 2 e última sessão passa a ser 18/10/2026 (RN27)
+    expect(secaoSessoes).toHaveTextContent("Total de sessões: 2");
+    expect(secaoSessoes).toHaveTextContent("Última sessão: 18/10/2026");
   });
 });
