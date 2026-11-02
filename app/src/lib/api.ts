@@ -1,11 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   DadosPacienteInput,
+  DadosSessaoAtualizarInput,
+  DadosSessaoCriarInput,
   ErroApi,
   FiltroPacientes,
   Paciente,
   PacienteResumo,
   RespostaSetupAuth,
+  Sessao,
   StatusAuth,
   StatusPaciente,
 } from "./types";
@@ -136,4 +139,26 @@ export function pacienteExcluir(
     confirmacaoNome,
     confirmacao_nome: confirmacaoNome,
   });
+}
+
+export function sessoesListar(pacienteId: string): Promise<Sessao[]> {
+  return invocarComando<Sessao[]>("sessoes_listar", {
+    pacienteId,
+    paciente_id: pacienteId,
+  });
+}
+
+export function sessaoCriar(dados: DadosSessaoCriarInput): Promise<Sessao> {
+  return invocarComando<Sessao>("sessao_criar", { dados });
+}
+
+export function sessaoAtualizar(
+  id: string,
+  dados: DadosSessaoAtualizarInput,
+): Promise<Sessao> {
+  return invocarComando<Sessao>("sessao_atualizar", { id, dados });
+}
+
+export function sessaoExcluir(id: string): Promise<void> {
+  return invocarComando<void>("sessao_excluir", { id });
 }

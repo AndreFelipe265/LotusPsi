@@ -73,6 +73,10 @@ pub fn run() {
             commands::pacientes::paciente_atualizar,
             commands::pacientes::paciente_definir_status,
             commands::pacientes::paciente_excluir,
+            commands::sessoes::sessoes_listar,
+            commands::sessoes::sessao_criar,
+            commands::sessoes::sessao_atualizar,
+            commands::sessoes::sessao_excluir,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");

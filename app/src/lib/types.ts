@@ -88,3 +88,23 @@ export interface FiltroPacientes {
   busca?: string;
   status?: StatusPaciente | "todos";
 }
+
+export interface Sessao {
+  id: string;
+  paciente_id: string;
+  data: string;
+  resumo: string;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface DadosSessaoCriarInput {
+  paciente_id: string;
+  data: string;
+  resumo: string;
+}
+
+export interface DadosSessaoAtualizarInput {
+  data: string;
+  resumo: string;
+}
