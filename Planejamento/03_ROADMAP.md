@@ -31,7 +31,7 @@ flowchart LR
   - `unicode-normalization`, `chrono`
 - [x] **F0-T4** Criar o esqueleto dos módulos Rust (seção 2 da Arquitetura), `AppState` e `error.rs`. (`5c05072`)
 - [x] **F0-T5** Lint/format (clippy, rustfmt, eslint, prettier) e scripts `npm run dev/test/build`. (`36256cd`)
-- [x] **F0-T6** Exportar o logo LC do PDF para `src/assets` e embutir a fonte local.
+- [x] **F0-T6** Exportar o logo LC do PDF para `src/assets` e embutir a fonte local. (`a877371`)
 
 **Aceite:** `npm run tauri dev` abre uma janela com o logo e as cores; nenhuma requisição de rede.
 
