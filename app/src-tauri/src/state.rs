@@ -6,6 +6,7 @@ use rusqlite::Connection;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::error::{Erro, Resultado};
+use crate::files::limpar_temporarios;
 
 /// Tamanho da chave simétrica DEK/KEK em bytes (256 bits).
 pub const KEY_LEN: usize = 32;
@@ -31,7 +32,8 @@ impl fmt::Debug for Key {
 }
 
 /// Estado global em memória do aplicativo.
-/// Ao bloquear (RN05/RN06), a conexão SQLCipher é fechada e a DEK é zerada da memória.
+/// Ao bloquear (RN05/RN06) ou fechar a janela (F1-T7), a conexão SQLCipher é fechada,
+/// a DEK é zerada da memória e os arquivos temporários são apagados.
 pub struct AppState {
     pub dek: Mutex<Option<Key>>,
     pub conn: Mutex<Option<Connection>>,
@@ -40,6 +42,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(data_dir: PathBuf) -> Self {
+        let _ = limpar_temporarios(&data_dir);
         Self {
             dek: Mutex::new(None),
             conn: Mutex::new(None),
@@ -58,7 +61,8 @@ impl AppState {
         }
     }
 
-    /// Bloqueia o aplicativo: fecha a conexão com o banco e apaga a DEK da memória com zeroize.
+    /// Bloqueia o aplicativo: fecha a conexão com o banco, apaga a DEK da memória com zeroize
+    /// e remove todos os arquivos temporários abertos (F1-T7).
     pub fn bloquear(&self) -> Resultado<()> {
         let mut conn_guard = self.conn.lock().map_err(|_| Erro::Interno)?;
         let mut dek_guard = self.dek.lock().map_err(|_| Erro::Interno)?;
@@ -70,6 +74,25 @@ impl AppState {
             chave.zeroize();
         }
 
+        drop(conn_guard);
+        drop(dek_guard);
+
+        limpar_temporarios(&self.data_dir)?;
+
         Ok(())
+    }
+}
+
+impl Drop for AppState {
+    fn drop(&mut self) {
+        if let Ok(mut conn_guard) = self.conn.lock() {
+            *conn_guard = None;
+        }
+        if let Ok(mut dek_guard) = self.dek.lock() {
+            if let Some(mut chave) = dek_guard.take() {
+                chave.zeroize();
+            }
+        }
+        let _ = limpar_temporarios(&self.data_dir);
     }
 }

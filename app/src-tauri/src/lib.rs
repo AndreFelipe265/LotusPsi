@@ -47,8 +47,18 @@ pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
             let data_dir = resolver_pasta_dados();
+            let _ = crate::files::limpar_temporarios(&data_dir);
             app.manage(AppState::new(data_dir));
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if matches!(
+                event,
+                tauri::WindowEvent::CloseRequested { .. } | tauri::WindowEvent::Destroyed
+            ) {
+                let state = window.state::<AppState>();
+                let _ = state.bloquear();
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::auth::auth_status,

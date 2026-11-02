@@ -45,8 +45,8 @@ flowchart LR
 - [x] **F1-T3** `db.rs`: abrir SQLCipher com a DEK, WAL, foreign_keys e migração `001_inicial.sql` (seção 6). (`62b849a`)
 - [x] **F1-T4** Comandos `auth_*` (status, setup, login, lock, change_password, recover). (`3b3b7d9`)
 - [x] **F1-T5** Telas T01 (primeiro acesso + imprimir chave), T02 (login com aviso de bloqueio) e T03 (recuperar). (`a30809f`)
-- [x] **F1-T6** `idle.ts`: bloqueio após 30 min, sem perder o estado (RN05); botão Sair (RN06).
-- [ ] **F1-T7** Limpar temporários e zerar a DEK no lock e ao fechar a janela.
+- [x] **F1-T6** `idle.ts`: bloqueio após 30 min, sem perder o estado (RN05); botão Sair (RN06). (`1efea9d`)
+- [x] **F1-T7** Limpar temporários e zerar a DEK no lock e ao fechar a janela.
 
 **Aceite:**
 - O banco em disco não abre sem a chave (testar com `sqlite3`).

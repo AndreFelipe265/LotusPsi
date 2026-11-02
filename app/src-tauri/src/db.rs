@@ -192,6 +192,18 @@ mod tests {
         assert!(bytes.len() >= 16);
         assert_ne!(&bytes[..16], b"SQLite format 3\0");
 
+        // 4. Critério de aceite F1: testar com o binário `sqlite3` que o arquivo não abre sem a chave
+        if let Ok(output) = std::process::Command::new("sqlite3")
+            .arg(&caminho)
+            .arg("SELECT count(*) FROM sqlite_master;")
+            .output()
+        {
+            assert!(
+                !output.status.success(),
+                "O binário sqlite3 não deve conseguir ler o banco cifrado sem a chave"
+            );
+        }
+
         let _ = fs::remove_dir_all(&dir);
     }
 }
