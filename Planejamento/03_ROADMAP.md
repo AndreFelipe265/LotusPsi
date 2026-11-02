@@ -19,7 +19,7 @@ flowchart LR
 ---
 
 ## F0 — Fundação do projeto
-- [ ] **F0-T1** Criar o projeto Tauri 2 + React + TS + Vite em `app/` e configurar Tailwind com os tokens de cor (seção 4).
+- [x] **F0-T1** Criar o projeto Tauri 2 + React + TS + Vite em `app/` e configurar Tailwind com os tokens de cor (seção 4).
 - [ ] **F0-T2** Configurar segurança do Tauri:
   - CSP restrita.
   - Capabilities mínimas.

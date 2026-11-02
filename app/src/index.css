@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 16px;
+    color: #3A2E36;
+    background-color: #FBF7F9;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #3A2E36;
+    background-color: #FBF7F9;
+  }
+}
