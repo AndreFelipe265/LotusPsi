@@ -63,13 +63,13 @@ flowchart LR
 **Aceite:** navegação entre as áreas em até 2 cliques; texto ≥ 16px; contraste AA.
 
 ## F3 — Pacientes (RN10–RN19, T05–T07)
-- [ ] **F3-T1** `text.rs`: normalização sem acento + comandos CRUD de pacientes. Testes.
-- [ ] **F3-T2** Lista T05 com busca instantânea (nome/telefone), filtro de status e colunas definidas.
-- [ ] **F3-T3** Formulário T06 em grupos:
+- [x] **F3-T1** `text.rs`: normalização sem acento + comandos CRUD de pacientes. Testes. (`78749c9`)
+- [x] **F3-T2** Lista T05 com busca instantânea (nome/telefone), filtro de status e colunas definidas. (`f40c3cb`)
+- [x] **F3-T3** Formulário T06 em grupos: (`b4b8dd4`)
   - Máscara de telefone e data.
   - Destaque dos campos de responsável para menores de 18 (RN13).
   - Só o nome é obrigatório.
-- [ ] **F3-T4** Perfil T07: cabeçalho, dados cadastrais, área reservada para sessões e Mais opções (inativar/reativar/excluir com digitação do nome — RN14, RN18).
+- [x] **F3-T4** Perfil T07: cabeçalho, dados cadastrais, área reservada para sessões e Mais opções (inativar/reativar/excluir com digitação do nome — RN14, RN18). (`8dd975a`)
 
 **Aceite:** criar, editar, buscar "joao" → "João", inativar e reativar, excluir com confirmação.
 
