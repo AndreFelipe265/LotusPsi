@@ -81,7 +81,7 @@ flowchart LR
   - Selo "(editado)".
   - Editar/excluir.
   - Total de sessões e data da última.
-- [ ] **F4-T4** Atalho "Registrar sessão" no painel: busca rápida de paciente → modal.
+- [x] **F4-T4** Atalho "Registrar sessão" no painel: busca rápida de paciente → modal. (`0f116d0`)
 - [ ] **F4-T5** 🎯 **Instalador provisório** para a usuária começar a usar e dar feedback.
 
 **Aceite:** registrar 3 sessões, editar 1 e excluir 1; o bloqueio de 30 min durante a digitação não perde o texto.
