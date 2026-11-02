@@ -12,15 +12,17 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "LC Pacientes",
         "width": 1200,
         "height": 800,
         "minWidth": 960,
-        "minHeight": 640
+        "minHeight": 640,
+        "devtools": false
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: asset:; connect-src 'self' ipc: tauri:; frame-src 'none'; object-src 'none';"
     }
   },
   "bundle": {
