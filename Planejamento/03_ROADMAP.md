@@ -19,13 +19,13 @@ flowchart LR
 ---
 
 ## F0 — Fundação do projeto
-- [x] **F0-T1** Criar o projeto Tauri 2 + React + TS + Vite em `app/` e configurar Tailwind com os tokens de cor (seção 4).
-- [x] **F0-T2** Configurar segurança do Tauri:
+- [x] **F0-T1** Criar o projeto Tauri 2 + React + TS + Vite em `app/` e configurar Tailwind com os tokens de cor (seção 4). (`941206c`)
+- [x] **F0-T2** Configurar segurança do Tauri: (`8d78090`)
   - CSP restrita.
   - Capabilities mínimas.
   - Sem HTTP.
   - Desabilitar devtools em release.
-- [ ] **F0-T3** Adicionar dependências Rust:
+- [x] **F0-T3** Adicionar dependências Rust:
   - `rusqlite` (bundled-sqlcipher)
   - `argon2`, `chacha20poly1305`, `zeroize`, `uuid`, `serde`, `thiserror`
   - `unicode-normalization`, `chrono`
