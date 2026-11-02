@@ -1,42 +1,110 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components";
+import { Button, Input, Modal, SessaoModal, Toast } from "../components";
 import { pacientesListar } from "../lib/api";
-import { formatarDataBr } from "../lib/format";
+import {
+  extrairDigitos,
+  formatarDataBr,
+  formatarIdadeComNascimento,
+  formatarTelefoneBr,
+  obterDataHojeIso,
+} from "../lib/format";
+import type { PacienteResumo } from "../lib/types";
 
-function obterDataHojeIso(): string {
-  const agora = new Date();
-  const ano = agora.getFullYear();
-  const mes = String(agora.getMonth() + 1).padStart(2, "0");
-  const dia = String(agora.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
+function normalizarTextoLocal(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 export function Inicio() {
   const navigate = useNavigate();
-  const [totalAtivos, setTotalAtivos] = useState<number>(0);
+  const [pacientesAtivos, setPacientesAtivos] = useState<PacienteResumo[]>([]);
   const [mostrarProximos7Dias, setMostrarProximos7Dias] =
     useState<boolean>(false);
   const [rascunhoRapido, setRascunhoRapido] = useState<string>("");
 
+  // Fluxo F4-T4: Atalho "Registrar sessão" -> busca rápida de paciente -> Modal T08
+  const [modalBuscaAberta, setModalBuscaAberta] = useState<boolean>(false);
+  const [buscaRapida, setBuscaRapida] = useState<string>("");
+  const [pacienteSelecionado, setPacienteSelecionado] =
+    useState<PacienteResumo | null>(null);
+  const [modalSessaoAberto, setModalSessaoAberto] = useState<boolean>(false);
+  const [toastSucesso, setToastSucesso] = useState<string | null>(null);
+
   const dataHojeBr = formatarDataBr(obterDataHojeIso());
+  const totalAtivos = pacientesAtivos.length;
 
   useEffect(() => {
     let cancelado = false;
     pacientesListar({ status: "ativo" })
       .then((lista) => {
         if (!cancelado && Array.isArray(lista)) {
-          setTotalAtivos(lista.length);
+          setPacientesAtivos(lista);
         }
       })
       .catch(() => {
-        // Enquanto o comando pacientes_listar ainda não estiver implementado no backend (F3), mantém 0
+        // Mantém lista vazia em caso de erro inicial
       });
 
     return () => {
       cancelado = true;
     };
   }, []);
+
+  const pacientesFiltradosBuscaRapida = useMemo(() => {
+    const termo = buscaRapida.trim();
+    const termoNormalizado = normalizarTextoLocal(termo);
+    const termoDigitos = extrairDigitos(termo);
+
+    return [...pacientesAtivos]
+      .filter((p) => {
+        if (!termo) return true;
+        const nomeNorm = normalizarTextoLocal(p.nome);
+        if (termoNormalizado && nomeNorm.includes(termoNormalizado)) {
+          return true;
+        }
+        if (termoDigitos) {
+          const telDigitos = extrairDigitos(p.telefone ?? "");
+          const zapDigitos = extrairDigitos(p.whatsapp ?? "");
+          if (
+            telDigitos.includes(termoDigitos) ||
+            zapDigitos.includes(termoDigitos)
+          ) {
+            return true;
+          }
+        }
+        return false;
+      })
+      .sort((a, b) =>
+        normalizarTextoLocal(a.nome).localeCompare(
+          normalizarTextoLocal(b.nome),
+          "pt-BR",
+        ),
+      );
+  }, [pacientesAtivos, buscaRapida]);
+
+  function abrirAtalhoRegistrarSessao() {
+    setBuscaRapida("");
+    setModalBuscaAberta(true);
+    pacientesListar({ status: "ativo" })
+      .then((lista) => {
+        if (Array.isArray(lista)) {
+          setPacientesAtivos(lista);
+        }
+      })
+      .catch(() => {
+        // Ignora falha silenciosamente mantendo lista já carregada
+      });
+  }
+
+  function selecionarPacienteParaSessao(paciente: PacienteResumo) {
+    setPacienteSelecionado(paciente);
+    setModalBuscaAberta(false);
+    setModalSessaoAberto(true);
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -81,7 +149,7 @@ export function Inicio() {
           <Button
             variante="secundario"
             larguraTotal
-            onClick={() => navigate("/pacientes")}
+            onClick={abrirAtalhoRegistrarSessao}
           >
             Registrar sessão
           </Button>
@@ -187,6 +255,90 @@ export function Inicio() {
           className="w-full px-4 py-3 text-base rounded-xl border border-lilas-acinzentado bg-fundo-claro text-texto focus:outline-none focus:ring-2 focus:ring-malva"
         />
       </section>
+
+      {/* Modal de busca rápida de paciente para registrar sessão (F4-T4) */}
+      <Modal
+        aberto={modalBuscaAberta}
+        titulo="Selecionar paciente para sessão"
+        aoFechar={() => setModalBuscaAberta(false)}
+        larguraMax="lg"
+        rodape={
+          <Button
+            variante="contorno"
+            onClick={() => setModalBuscaAberta(false)}
+          >
+            Cancelar
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <Input
+            id="busca-rapida-paciente-sessao"
+            rotulo="Buscar paciente por nome ou telefone"
+            value={buscaRapida}
+            onChange={(e) => setBuscaRapida(e.target.value)}
+            placeholder="Digite o nome ou telefone..."
+          />
+
+          {pacientesFiltradosBuscaRapida.length === 0 ? (
+            <div className="p-4 rounded-xl bg-fundo border border-rosa-claro text-base text-texto">
+              Nenhum paciente ativo encontrado.
+            </div>
+          ) : (
+            <ul
+              data-testid="lista-busca-rapida-pacientes"
+              className="max-h-72 overflow-y-auto divide-y divide-rosa-claro border border-rosa-claro rounded-xl bg-fundo"
+            >
+              {pacientesFiltradosBuscaRapida.map((p) => (
+                <li
+                  key={p.id}
+                  className="p-3 flex items-center justify-between gap-3 hover:bg-rosa-claro/20"
+                >
+                  <div className="text-base text-texto">
+                    <p className="font-bold text-malva">{p.nome}</p>
+                    <p className="text-base text-lilas-acinzentado">
+                      {formatarIdadeComNascimento(p.data_nascimento)} ·{" "}
+                      {formatarTelefoneBr(p.telefone || p.whatsapp)}
+                    </p>
+                  </div>
+                  <Button
+                    variante="primario"
+                    className="px-4 py-2 shrink-0"
+                    data-testid={`selecionar-paciente-sessao-${p.id}`}
+                    onClick={() => selecionarPacienteParaSessao(p)}
+                  >
+                    Selecionar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Modal>
+
+      {/* Modal T08 — Registrar sessão do paciente selecionado */}
+      {pacienteSelecionado && (
+        <SessaoModal
+          aberto={modalSessaoAberto}
+          pacienteId={pacienteSelecionado.id}
+          pacienteNome={pacienteSelecionado.nome}
+          aoFechar={() => {
+            setModalSessaoAberto(false);
+            setPacienteSelecionado(null);
+          }}
+          aoSalva={() => {
+            setModalSessaoAberto(false);
+            setPacienteSelecionado(null);
+            setToastSucesso("Sessão registrada com sucesso.");
+          }}
+        />
+      )}
+
+      <Toast
+        mensagem={toastSucesso}
+        tipo="sucesso"
+        aoFechar={() => setToastSucesso(null)}
+      />
     </div>
   );
 }

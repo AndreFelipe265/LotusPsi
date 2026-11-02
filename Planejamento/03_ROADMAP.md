@@ -76,7 +76,7 @@ flowchart LR
 ## F4 — Sessões (RN20–RN27, T08)
 - [x] **F4-T1** Comandos de sessões com validação (data não futura, ≤ 600 caracteres). Testes. (`622c232`)
 - [x] **F4-T2** Modal T08 com contador 0/600 e data padrão = hoje. (`3883ed0`)
-- [ ] **F4-T3** Histórico compacto no perfil:
+- [x] **F4-T3** Histórico compacto no perfil: (`ee08b88`)
   - Ordem decrescente.
   - Selo "(editado)".
   - Editar/excluir.

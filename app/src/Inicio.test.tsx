@@ -139,4 +139,116 @@ describe("Painel Inicial T04 (F2-T3)", () => {
       }
     }
   });
+
+  it("atalho 'Registrar sessão' abre busca rápida de paciente, seleciona paciente e abre modal T08, preservando o texto durante bloqueio por inatividade (F4-T4 — RN05, T08)", async () => {
+    vi.spyOn(api, "authStatus").mockResolvedValue({
+      configurado: true,
+      desbloqueado: true,
+    });
+    vi.spyOn(api, "pacientesListar").mockResolvedValue([
+      {
+        id: "p-joao",
+        nome: "João da Conceição",
+        data_nascimento: "1990-05-15",
+        telefone: "71998765432",
+        status: "ativo",
+      },
+      {
+        id: "p-ana",
+        nome: "Ana Beatriz",
+        data_nascimento: "1995-02-10",
+        telefone: "71988887777",
+        status: "ativo",
+      },
+    ]);
+    const criarSessaoSpy = vi.spyOn(api, "sessaoCriar").mockResolvedValue({
+      id: "s-nova",
+      paciente_id: "p-joao",
+      data: "2026-11-02",
+      resumo: "Resumo digitado antes do bloqueio de 30 minutos.",
+      criado_em: "2026-11-02T15:00:00Z",
+      atualizado_em: "2026-11-02T15:00:00Z",
+    });
+    const lockSpy = vi.spyOn(api, "authLock").mockResolvedValue(undefined);
+    const loginSpy = vi.spyOn(api, "authLogin").mockResolvedValue(undefined);
+
+    render(<App rotaInicial="/" tempoInatividadeMs={120} />);
+
+    expect(
+      await screen.findByRole("heading", { name: /Olá, Louriedna!/i }),
+    ).toBeInTheDocument();
+
+    // 1. Clicar no atalho "Registrar sessão" abre a busca rápida de paciente
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Registrar sessão$/i }),
+    );
+    expect(
+      await screen.findByRole("dialog", {
+        name: "Selecionar paciente para sessão",
+      }),
+    ).toBeInTheDocument();
+
+    // 2. Buscar "joao" sem acento filtra "João da Conceição"
+    const inputBusca = screen.getByLabelText(
+      /Buscar paciente por nome ou telefone/i,
+    );
+    fireEvent.change(inputBusca, { target: { value: "joao" } });
+    expect(screen.getByText("João da Conceição")).toBeInTheDocument();
+    expect(screen.queryByText("Ana Beatriz")).not.toBeInTheDocument();
+
+    // 3. Selecionar paciente abre o Modal T08 (Nova sessão)
+    fireEvent.click(screen.getByTestId("selecionar-paciente-sessao-p-joao"));
+    expect(
+      await screen.findByRole("dialog", { name: "Nova sessão" }),
+    ).toBeInTheDocument();
+
+    // 4. Digitar texto no resumo da sessão
+    const campoResumo = screen.getByLabelText(/Resumo da sessão/i);
+    fireEvent.change(campoResumo, {
+      target: { value: "Resumo digitado antes do bloqueio de 30 minutos." },
+    });
+    expect(campoResumo).toHaveValue(
+      "Resumo digitado antes do bloqueio de 30 minutos.",
+    );
+
+    // 5. Aguardar o bloqueio automático por inatividade (RN05)
+    await waitFor(
+      () => {
+        expect(
+          screen.getByRole("dialog", { name: /Sessão bloqueada/i }),
+        ).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
+    expect(lockSpy).toHaveBeenCalled();
+
+    // 6. Desbloquear com a senha e verificar que o modal T08 e o texto digitado continuam intactos
+    fireEvent.change(screen.getByLabelText(/Senha de acesso/i), {
+      target: { value: "SenhaCorreta123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^Entrar$/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: /Sessão bloqueada/i }),
+      ).not.toBeInTheDocument();
+    });
+    expect(loginSpy).toHaveBeenCalledWith("SenhaCorreta123");
+
+    expect(screen.getByLabelText(/Resumo da sessão/i)).toHaveValue(
+      "Resumo digitado antes do bloqueio de 30 minutos.",
+    );
+
+    // 7. Salvar a sessão após desbloquear
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(criarSessaoSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paciente_id: "p-joao",
+          resumo: "Resumo digitado antes do bloqueio de 30 minutos.",
+        }),
+      );
+    });
+  });
 });
