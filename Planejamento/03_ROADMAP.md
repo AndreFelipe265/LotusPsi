@@ -54,11 +54,11 @@ flowchart LR
 - A chave de recuperação redefine a senha.
 
 ## F2 — Layout e Painel inicial (T04)
-- [ ] **F2-T1** Componentes base:
+- [x] **F2-T1** Componentes base: (`b54ef1d`)
   - Layout, Sidebar (Início · Pacientes · Documentos · Configurações · Sair)
   - Button, Input, Modal, ConfirmDialog, Toast, EmptyState
-- [ ] **F2-T2** Rotas com guarda (bloqueado → login).
-- [ ] **F2-T3** Painel com saudação, atalhos, total de ativos e espaço reservado para aniversariantes e backup.
+- [x] **F2-T2** Rotas com guarda (bloqueado → login). (`4e7236e`)
+- [x] **F2-T3** Painel com saudação, atalhos, total de ativos e espaço reservado para aniversariantes e backup. (`b83f9d8`)
 
 **Aceite:** navegação entre as áreas em até 2 cliques; texto ≥ 16px; contraste AA.
 
