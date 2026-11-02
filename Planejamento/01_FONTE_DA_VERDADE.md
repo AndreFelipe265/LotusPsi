@@ -1,0 +1,387 @@
+# FONTE DA VERDADE — Sistema de Pacientes e Documentos
+
+> [!IMPORTANT]
+> **Este arquivo é a referência absoluta do projeto.**
+> Toda IA ou pessoa que trabalhar no projeto deve ler este arquivo antes de qualquer tarefa.
+> - Se outro arquivo (questionário, rascunhos, conversas, código) contradisser este documento, **vale este documento**.
+> - Se algo não estiver definido aqui, **não invente**: pergunte ao desenvolvedor (Felipe) e registre a decisão na seção 12 (Registro de Decisões).
+> - Só altere este arquivo quando o desenvolvedor aprovar a mudança, e sempre registre a alteração na seção 12.
+
+**Versão:** 1.0 — 01/11/2026
+
+---
+
+## 1. Contexto
+
+| Item | Valor |
+|---|---|
+| Usuária única | **Louriedna Costa Pereira**, Psicóloga, CRP 03/29434 |
+| Desenvolvedor | Felipe (filho da usuária) |
+| Tipo de aplicação | **Programa desktop local, 100% offline** |
+| Computador | De uso exclusivo da usuária, com um único usuário |
+| Público atendido | Todas as faixas etárias (crianças, adolescentes e adultos) |
+| Idioma | Português do Brasil (interface, mensagens e datas no formato dd/mm/aaaa) |
+
+**Fontes originais**, já incorporadas a este documento:
+- Áudios transcritos da usuária (`WhatsApp-Ptt-*.pdf`)
+- Respostas do formulário (`Questionário — ... .csv`)
+- Identidade visual (`LC_apresentação_cubo.pdf`)
+- Documento de requisitos inicial
+
+**Palavras da usuária (áudios):**
+- *"um programinha para o computador"*
+- *"lugarzinho dos documentos… para eu baixar e preencher"*
+- *"no íconezinho desse paciente, está tudo dele lá"*
+- *"a cada dia pode ser pequenininho… umas quatro linhas, no máximo cinco… e a data, só"*
+
+---
+
+## 2. Escopo
+
+### 2.1 Fase 1 — MVP (construir agora)
+1. Login com senha, bloqueio por inatividade e chave de recuperação em papel.
+2. Painel inicial com os aniversariantes do dia.
+3. Pacientes: cadastro, lista, busca, perfil e status ativo/inativo.
+4. Sessões: data + resumo curto, que pode ser editado e excluído.
+5. Documentos gerais: enviar, listar, organizar por categorias, baixar/abrir e excluir.
+6. Backup criptografado feito pelo botão, e restauração.
+7. Configurações: trocar senha, backup/restauração e informações de segurança.
+
+### 2.2 Fase 2 — pedida pela usuária, construir depois do MVP
+- **Financeiro:** entradas (pagamentos de sessões) e gastos do consultório, com resumo mensal.
+- **Grade de horários semanais:** horários fixos de cada paciente.
+
+### 2.3 Fora do escopo (NÃO implementar)
+- Ficha de anamnese, tanto o preenchimento quanto o anexo ao paciente.
+  - Obs.: a usuária citou a anamnese no áudio, mas o escopo a exclui. Ela pode guardar o *modelo* da ficha em Documentos.
+- Múltiplos usuários, compartilhamento, sincronização ou acesso pela internet.
+- Exportar o histórico em PDF (ela respondeu "raramente"; reavaliar no futuro).
+- Envio automático de mensagens. O WhatsApp só será **aberto** pela usuária com um clique.
+- Telemetria, analytics, atualização automática pela internet ou qualquer chamada de rede.
+
+---
+
+## 3. Stack tecnológica (decidida)
+
+| Camada | Tecnologia |
+|---|---|
+| Shell desktop | **Tauri 2** (Rust) |
+| Frontend | **React 18 + TypeScript + Vite** |
+| Estilo | **Tailwind CSS**, com tokens da identidade visual |
+| Roteamento | React Router |
+| Banco de dados | **SQLite criptografado com SQLCipher** (`rusqlite` com a feature `bundled-sqlcipher`) |
+| Hash de senha / KDF | **Argon2id** (crate `argon2`) |
+| Criptografia de arquivos e backups | **XChaCha20-Poly1305** (crate `chacha20poly1305`) |
+| Migrações | SQL versionado embutido no binário |
+| Testes | `cargo test` (backend) e Vitest (frontend) |
+| Empacotamento | Instalador **Windows (.msi/.exe)**, padrão. Linux (AppImage) para testes do desenvolvedor |
+
+**Regras da stack:**
+- Toda lógica de dados, criptografia e arquivos fica no **Rust**. O frontend só chama `invoke()` em comandos Tauri.
+- O frontend **nunca** acessa disco, banco ou chaves diretamente.
+  - Plugins `fs`/`sql` do Tauri **não** devem ser expostos ao frontend.
+- Permissões (capabilities) do Tauri devem ser mínimas.
+  - Sem permissão de HTTP/rede.
+  - CSP restritiva, sem carregar recursos remotos (fontes devem ser locais).
+- Dependências fixadas (`Cargo.lock` e `package-lock.json` versionados).
+
+> ⚠️ **Pendente (confirmar com a usuária):** o sistema operacional do computador dela. Assume-se Windows 10/11.
+
+---
+
+## 4. Identidade visual
+
+| Token | Cor | Uso |
+|---|---|---|
+| `rosa` | `#E599A6` | Destaques e botões secundários |
+| `malva` | `#AC6E87` | **Cor primária**: botões principais e cabeçalho |
+| `lilas-acinzentado` | `#92798F` | Textos secundários, ícones e bordas |
+| `rosa-claro` | `#E9BFD5` | Fundos suaves, cards e seleção |
+| `fundo` | `#FFFFFF` / `#FBF7F9` | Fundo geral |
+| `texto` | `#3A2E36` | Texto principal (bom contraste) |
+
+**Visual:**
+- Logo/monograma "LC" com borboletas. Exportar do PDF para `src/assets/`.
+- Fonte cursiva só no logo. Interface em sans-serif legível (ex.: *Nunito* ou *Inter*), **embutida localmente**.
+
+**Princípios de interface:**
+- Texto base de no mínimo 16px e botões grandes com rótulos em texto (não apenas ícones).
+- No máximo 2 cliques para chegar a qualquer função principal.
+- Menu lateral fixo: **Início · Pacientes · Documentos · Configurações** (+ Financeiro e Agenda na Fase 2).
+- Toda ação destrutiva pede confirmação, mostrando claramente o que será apagado.
+- Mensagens amigáveis, sem jargão técnico.
+- Contraste mínimo WCAG AA. Texto branco só sobre `malva` ou cores mais escuras.
+
+---
+
+## 5. Regras de negócio
+
+### 5.1 Acesso e segurança
+- **RN01** — Primeiro uso: a usuária cria a senha mestra.
+  - Mínimo de 8 caracteres.
+  - Mostrar um indicador de força e sugerir uma frase.
+- **RN02** — Após criar a senha, o sistema gera uma **chave de recuperação** (24 caracteres em grupos, ex.: `ABCD-EFGH-...`). A tela:
+  - Exibe a chave e oferece imprimi-la.
+  - Exige que a usuária confirme que a guardou, redigitando os 4 últimos caracteres.
+  - Avisa: *"Sem a senha e sem esta chave, os dados não poderão ser recuperados."*
+- **RN03** — Login somente por senha (usuária única, sem campo de usuário).
+- **RN04** — Após **5 tentativas erradas seguidas**, o login é bloqueado por **5 minutos**.
+  - Cada nova sequência de erros dobra o tempo, até no máximo 1 hora.
+  - O contador fica persistido, então reiniciar o app não zera o bloqueio.
+  - Um acerto zera o contador.
+- **RN05** — Após **30 minutos sem interação** (mouse/teclado), o sistema bloqueia:
+  - Exige a senha novamente.
+  - **Não perde** o texto que estiver sendo digitado em formulários abertos.
+- **RN06** — Botão **"Sair"** sempre visível: bloqueia o app e apaga a chave da memória.
+- **RN07** — Trocar a senha exige a senha atual.
+  - "Esqueci a senha" usa a chave de recuperação e obriga a criar uma nova senha.
+- **RN08** — Mensagens de erro de login são genéricas: *"Senha incorreta"*.
+  - Os logs nunca contêm dados de pacientes, senhas ou conteúdo de sessões.
+
+### 5.2 Pacientes
+- **RN10** — Campos obrigatórios: **Nome completo**. Todos os outros são opcionais.
+- **RN11** — Podem existir nomes iguais. A lista mostra a idade/data de nascimento para diferenciar.
+- **RN12** — A idade é calculada automaticamente a partir da data de nascimento.
+- **RN13** — Se o paciente tiver **menos de 18 anos**, a interface destaca os campos de responsável legal (sem torná-los obrigatórios).
+- **RN14** — Status: `ativo` (padrão) ou `inativo`.
+  - Inativar exige confirmação e grava a data.
+  - Reativar é permitido e mantém todo o histórico.
+- **RN15** — A lista mostra só os **ativos** por padrão. Filtros: Ativos | Inativos | Todos.
+- **RN16** — Ordenação padrão: alfabética por nome.
+- **RN17** — Busca instantânea por **nome ou telefone**, sem diferenciar maiúsculas/minúsculas nem acentos ("joao" encontra "João").
+- **RN18** — Exclusão definitiva é permitida, mas rara:
+  - Fica escondida em "Mais opções" no perfil.
+  - Exige digitar o nome do paciente para confirmar.
+  - Apaga também as sessões. Sugira inativar em vez de excluir.
+  - Aviso: guarda mínima de 5 anos, conforme a Resolução CFP 01/2009.
+- **RN19** — O perfil reúne, em uma única tela: dados cadastrais (editáveis) + histórico de sessões + botão "Nova sessão".
+
+### 5.3 Sessões
+- **RN20** — Campos: **data** (obrigatória, padrão hoje) e **resumo** (obrigatório).
+- **RN21** — Resumo com limite rígido de **600 caracteres**, mostrando um contador.
+  - Isso equivale a cerca de 4–5 linhas.
+  - O campo exibe 5 linhas visíveis.
+- **RN22** — Datas passadas são permitidas (para lançar registros antigos). **Datas futuras são proibidas.**
+- **RN23** — Pode haver mais de uma sessão na mesma data.
+- **RN24** — A lista fica em ordem cronológica **decrescente** (mais recente primeiro) e mostra só a data + o resumo, em formato compacto (sem página inteira por sessão).
+- **RN25** — Editar é permitido. O sistema guarda `atualizado_em` e mostra "(editado)". Não há histórico de versões no MVP.
+- **RN26** — Excluir uma sessão exige confirmação.
+- **RN27** — O perfil mostra o total de sessões e a data da última.
+
+### 5.4 Aniversariantes
+- **RN30** — O painel inicial mostra os **aniversariantes do dia**, **incluindo os inativos**. A usuária pediu: *"os pacientes que já passaram por mim"*.
+- **RN31** — Cada aniversariante mostra nome, idade que está completando e status.
+  - Se houver telefone/WhatsApp, mostra o botão **"Enviar parabéns no WhatsApp"**.
+  - O botão abre `https://wa.me/55<numero>?text=<mensagem>` no navegador padrão. Esta é a **única** abertura de link externo permitida, e só acontece com um clique da usuária.
+- **RN32** — Mensagem padrão editável em Configurações. Padrão:
+  > *"Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço, Louriedna."*
+- **RN33** — Nascidos em 29/02: em anos não bissextos, aparecem em 28/02.
+- **RN34** — Também mostrar "Próximos aniversários (7 dias)" em uma lista recolhível.
+
+### 5.5 Documentos gerais
+- **RN40** — Os documentos não têm vínculo com pacientes.
+- **RN41** — Categorias iniciais: **Modelos**, **Administrativo**, **Outros**.
+  - A usuária pode criar, renomear e excluir categorias.
+  - Só é possível excluir uma categoria vazia.
+- **RN42** — Formatos aceitos: PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, JPG, JPEG, PNG.
+  - Validar pela extensão **e** pela assinatura do arquivo (magic bytes).
+- **RN43** — Tamanho máximo de **25 MB** por arquivo.
+- **RN44** — Metadados exibidos: nome, categoria, tipo, tamanho, data de envio e descrição opcional.
+- **RN45** — Os arquivos são guardados **criptografados** na pasta de dados do app, com nome aleatório (UUID). O nome original fica apenas no banco criptografado.
+- **RN46** — Ações disponíveis:
+  - **Baixar** (salva uma cópia descriptografada onde a usuária escolher).
+  - **Abrir** (descriptografa em uma pasta temporária, abre no programa padrão e apaga a cópia temporária ao fechar o app).
+  - Renomear, trocar de categoria, editar descrição.
+  - Excluir (com confirmação).
+- **RN47** — Busca por nome e filtro por categoria. Ordenação padrão: mais recentes primeiro.
+- **RN48** — Nomes duplicados são permitidos.
+
+### 5.6 Backup e restauração
+- **RN50** — Botão **"Fazer backup agora"** no painel inicial e em Configurações.
+- **RN51** — O backup é um único arquivo `.lcbackup` contendo banco + documentos, criptografado.
+  - A usuária escolhe onde salvar (pendrive, pasta do Google Drive etc.).
+  - Nome sugerido: `backup-pacientes-AAAA-MM-DD-HHmm.lcbackup`.
+- **RN52** — O backup é aberto com a **mesma senha** ou com a **chave de recuperação**.
+- **RN53** — O painel mostra a data do último backup.
+  - Se passar de **7 dias**, mostra um lembrete amigável (sem bloquear nada).
+- **RN54** — Restaurar fica em Configurações:
+  - Exige a senha do backup.
+  - Mostra a data do backup e quantos pacientes/documentos ele tem.
+  - Confirma que os dados atuais serão substituídos.
+  - Cria antes, automaticamente, uma cópia de segurança dos dados atuais.
+- **RN55** — Depois de gerar o backup, validar que o arquivo abre (verificação de integridade).
+
+---
+
+## 6. Modelo de dados (SQLite / SQLCipher)
+
+```sql
+-- configuracoes chave/valor (não sensível fica no banco cifrado igualmente)
+CREATE TABLE config (chave TEXT PRIMARY KEY, valor TEXT NOT NULL);
+
+CREATE TABLE pacientes (
+  id TEXT PRIMARY KEY,                -- UUID v4
+  nome TEXT NOT NULL,
+  nome_busca TEXT NOT NULL,           -- nome normalizado (minúsculo, sem acento)
+  data_nascimento TEXT,               -- ISO AAAA-MM-DD
+  telefone TEXT,                      -- só dígitos, com DDD
+  whatsapp TEXT,                      -- só dígitos; se vazio usa telefone
+  email TEXT,
+  endereco TEXT,
+  nome_mae TEXT,
+  nome_pai TEXT,
+  responsavel_nome TEXT,
+  responsavel_parentesco TEXT,
+  responsavel_telefone TEXT,
+  contato_emergencia_nome TEXT,
+  contato_emergencia_telefone TEXT,
+  documento TEXT,                     -- CPF ou RG (texto livre)
+  ocupacao TEXT,                      -- profissão ou escola/série
+  motivo_procura TEXT,
+  modalidade TEXT CHECK (modalidade IN ('particular','convenio')),
+  convenio_nome TEXT,
+  valor_sessao_centavos INTEGER,
+  observacoes TEXT,
+  status TEXT NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo','inativo')),
+  inativado_em TEXT,
+  criado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_pacientes_busca ON pacientes(nome_busca);
+CREATE INDEX idx_pacientes_status ON pacientes(status);
+
+CREATE TABLE sessoes (
+  id TEXT PRIMARY KEY,
+  paciente_id TEXT NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  data TEXT NOT NULL,                 -- ISO AAAA-MM-DD
+  resumo TEXT NOT NULL CHECK (length(resumo) <= 600),
+  criado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_sessoes_paciente_data ON sessoes(paciente_id, data DESC);
+
+CREATE TABLE categorias_documento (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL UNIQUE,
+  ordem INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE documentos (
+  id TEXT PRIMARY KEY,                -- também é o nome do arquivo cifrado em disco
+  categoria_id TEXT REFERENCES categorias_documento(id),
+  nome_original TEXT NOT NULL,
+  descricao TEXT,
+  mime TEXT NOT NULL,
+  tamanho_bytes INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,               -- do conteúdo original, para integridade
+  enviado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+
+CREATE TABLE schema_migrations (versao INTEGER PRIMARY KEY, aplicado_em TEXT NOT NULL);
+```
+
+**Observações:**
+- `PRAGMA foreign_keys = ON;` em toda conexão.
+- Datas e horários em ISO 8601, no horário local.
+- **Fase 2** (não criar agora, apenas não bloquear): tabelas `lancamentos_financeiros` e `horarios_semanais`, ambas com `paciente_id` opcional.
+
+---
+
+## 7. Modelo de segurança e criptografia
+
+```
+Senha ──Argon2id(salt, m=64MiB, t=3, p=1)──► KEK_senha ──┐
+Chave de recuperação ──Argon2id(salt2)──► KEK_rec ───────┤ cada KEK "embrulha" (XChaCha20-Poly1305)
+                                                          ▼
+                                       DEK (32 bytes aleatórios, gerada 1x)
+                                         ├─► chave do SQLCipher (banco)
+                                         └─► chave dos arquivos de documentos
+```
+
+- **Arquivo `vault.json`** (fora do banco, não sensível). Contém:
+  - `versao`
+  - parâmetros e salts do Argon2
+  - `dek_por_senha` (DEK cifrada + nonce)
+  - `dek_por_recuperacao`
+  - estado do rate-limit do login
+- **Validação da senha:** é o próprio desembrulhar da DEK. Se a autenticação AEAD falhar, a senha está errada. Não se guarda hash separado.
+- **Trocar a senha:** apenas re-embrulha a DEK. Os dados **não** são re-cifrados.
+- **Na memória:**
+  - DEK/KEK com `zeroize`.
+  - Ao bloquear (RN05/RN06), a DEK é apagada e a conexão com o banco é fechada.
+- **Arquivos de documentos:**
+  - `docs/<uuid>.bin` = nonce (24B) + ciphertext.
+  - Arquivos grandes em blocos (STREAM) para não estourar a memória.
+- **Backup `.lcbackup`:**
+  - Cabeçalho com magic bytes e versão, mais cópia do `vault.json`.
+  - Payload: tar/zip (banco + docs) cifrado com a DEK.
+- **Pasta de dados:**
+  - Windows: `%APPDATA%\LC Pacientes\`
+  - Linux: `~/.local/share/lc-pacientes/`
+- **Temporários de "Abrir documento":** em subpasta própria, limpos ao bloquear, ao sair e ao iniciar.
+- **Proibido:**
+  - Senha, DEK ou dados de paciente em logs.
+  - `console.log` com dados no frontend.
+  - Guardar senha em localStorage.
+
+---
+
+## 8. Telas (Fase 1)
+
+| # | Tela | Conteúdo principal |
+|---|---|---|
+| T01 | Primeiro acesso | Boas-vindas → criar senha → exibir/imprimir chave de recuperação → confirmar |
+| T02 | Login / Bloqueado | Logo, campo de senha, "Entrar", "Esqueci a senha", aviso de bloqueio temporário |
+| T03 | Recuperar acesso | Chave de recuperação → nova senha |
+| T04 | Início (painel) | Saudação; aniversariantes do dia + próximos 7 dias; atalhos (Novo paciente, Registrar sessão, Buscar paciente, Documentos); total de ativos; último backup + botão |
+| T05 | Pacientes (lista) | Busca, filtro de status, botão "Novo paciente"; colunas: nome, idade, telefone, última sessão |
+| T06 | Paciente (form) | Criar/editar, com campos agrupados: Dados pessoais · Contato · Família/Responsável · Atendimento · Observações |
+| T07 | Paciente (perfil) | Cabeçalho (nome, idade, status, contato); "Nova sessão" em destaque; histórico compacto; abas/seção de dados cadastrais; Mais opções (inativar/reativar/excluir) |
+| T08 | Sessão (modal) | Data + resumo com contador 0/600; salvar/cancelar |
+| T09 | Documentos | Categorias (abas ou lateral), busca, botão "Enviar documento" (também arrastar e soltar), lista com ações |
+| T10 | Configurações | Trocar senha · Backup/Restaurar · Mensagem de aniversário · Gerenciar categorias · Sobre/segurança |
+
+"Registrar sessão" no painel abre uma busca rápida de paciente e depois o modal T08.
+
+---
+
+## 9. Requisitos não funcionais
+- Abrir o app e logar em < 3 s. Buscar paciente em < 200 ms com até 5.000 pacientes.
+- Funciona 100% offline. Zero requisições de rede (verificável).
+- Nenhuma perda de dados em caso de queda de energia: SQLite com WAL e transações.
+- Instalador único, sem exigir que a usuária instale dependências.
+- Código com testes nos pontos críticos: cripto, regras de data, rate-limit, backup/restauração.
+- LGPD: coletar só os campos listados. Todos opcionais, exceto o nome.
+
+## 10. Convenções de código
+- **Rust:**
+  - Módulos `crypto`, `db`, `vault`, `commands/*`, `files`, `backup`.
+  - Erros com `thiserror`. Mensagens ao frontend genéricas, em português.
+- **Frontend:**
+  - `src/pages`, `src/components`, `src/lib/api.ts` (wrappers tipados de `invoke`), `src/lib/format.ts`.
+  - TypeScript estrito.
+- **Nomes:** de domínio em português (paciente, sessao, documento); termos técnicos em inglês quando forem padrão.
+- **Commits:** pequenos, um por tarefa do roadmap (ex.: `feat(pacientes): busca sem acento [F3-T2]`).
+
+## 11. Definição de Pronto (para toda tarefa)
+1. Atende às regras de negócio citadas na tarefa (RNxx).
+2. Compila sem warnings relevantes. `cargo clippy` e `tsc` limpos.
+3. Testes da tarefa passando.
+4. Nenhuma chamada de rede, nenhum dado sensível em log.
+5. Textos da interface em pt-BR, revisados.
+6. Checklist da tarefa marcado em `03_ROADMAP.md`.
+
+## 12. Registro de Decisões
+| Data | Decisão | Motivo |
+|---|---|---|
+| 01/11/2026 | App desktop offline | Resposta 1.1 do formulário |
+| 01/11/2026 | Bloqueio após 30 min | Resposta 5.1 |
+| 01/11/2026 | Chave de recuperação em papel | Resposta 5.2 |
+| 01/11/2026 | Backup manual por botão + lembrete após 7 dias | Respostas 6.1/6.2 |
+| 01/11/2026 | Categorias simples em documentos | Resposta 4.2 |
+| 01/11/2026 | Sessão = data + resumo, editável | Respostas 3.1/3.2 |
+| 01/11/2026 | Aniversariantes inclui inativos | Campo livre 2.2 |
+| 01/11/2026 | Financeiro e agenda ficam para a Fase 2 | Campo livre 7.2 + prioridade 7.1 |
+| 01/11/2026 | Stack Tauri 2 + React + SQLCipher | Offline, leve, segura, instalador único |
+| 01/11/2026 | Resumo com limite de 600 caracteres | Tradução de "4–5 linhas" |
