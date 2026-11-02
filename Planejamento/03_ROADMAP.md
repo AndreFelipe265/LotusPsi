@@ -36,12 +36,12 @@ flowchart LR
 **Aceite:** `npm run tauri dev` abre uma janela com o logo e as cores; nenhuma requisição de rede.
 
 ## F1 — Núcleo de segurança (RN01–RN08, seção 7)
-- [x] **F1-T1** `crypto.rs`:
+- [x] **F1-T1** `crypto.rs`: (`f7d21d8`)
   - Argon2id.
   - Wrap/unwrap da DEK com XChaCha20-Poly1305.
   - Gerador da chave de recuperação.
   - Testes.
-- [ ] **F1-T2** `vault.rs`: ler/gravar `vault.json` de forma atômica e persistir o rate-limit (RN04). Testes.
+- [x] **F1-T2** `vault.rs`: ler/gravar `vault.json` de forma atômica e persistir o rate-limit (RN04). Testes.
 - [ ] **F1-T3** `db.rs`: abrir SQLCipher com a DEK, WAL, foreign_keys e migração `001_inicial.sql` (seção 6).
 - [ ] **F1-T4** Comandos `auth_*` (status, setup, login, lock, change_password, recover).
 - [ ] **F1-T5** Telas T01 (primeiro acesso + imprimir chave), T02 (login com aviso de bloqueio) e T03 (recuperar).
