@@ -1,12 +1,63 @@
+pub mod backup;
+pub mod commands;
+pub mod crypto;
+pub mod db;
+pub mod error;
+pub mod files;
+pub mod state;
+pub mod text;
+pub mod vault;
+
+use std::path::PathBuf;
+use tauri::Manager;
+
+use crate::state::AppState;
+
+/// Resolve o diretório de dados do aplicativo conforme a seção 7 da Fonte da Verdade:
+/// - Windows: `%APPDATA%\LC Pacientes\`
+/// - Linux: `~/.local/share/lc-pacientes/`
+pub fn resolver_pasta_dados() -> PathBuf {
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            return PathBuf::from(appdata).join("LC Pacientes");
+        }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        if let Ok(xdg_data) = std::env::var("XDG_DATA_HOME") {
+            if !xdg_data.trim().is_empty() {
+                return PathBuf::from(xdg_data).join("lc-pacientes");
+            }
+        }
+        if let Ok(home) = std::env::var("HOME") {
+            return PathBuf::from(home)
+                .join(".local")
+                .join("share")
+                .join("lc-pacientes");
+        }
+    }
+
+    PathBuf::from("lc-pacientes-dados")
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            let data_dir = resolver_pasta_dados();
+            app.manage(AppState::new(data_dir));
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");
 }
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use argon2::Argon2;
     use chacha20poly1305::{
         aead::{Aead, KeyInit},
@@ -15,16 +66,13 @@ mod tests {
     use chrono::NaiveDate;
     use rusqlite::Connection;
     use serde::{Deserialize, Serialize};
-    use thiserror::Error;
     use unicode_normalization::UnicodeNormalization;
     use uuid::Uuid;
     use zeroize::Zeroize;
 
-    #[derive(Debug, Error)]
-    enum TesteErro {
-        #[error("erro de teste")]
-        Falha,
-    }
+    use crate::db::MIGRACAO_001_INICIAL;
+    use crate::error::Erro;
+    use crate::state::{AppState, Key};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     struct ItemTeste {
@@ -33,7 +81,6 @@ mod tests {
 
     #[test]
     fn dependencias_f0_t3_funcionam() {
-        // rusqlite + bundled-sqlcipher
         let conn = Connection::open_in_memory().expect("abrir banco em memória");
         conn.pragma_update(None, "key", "chave-teste-sqlcipher")
             .expect("configurar chave sqlcipher");
@@ -42,13 +89,11 @@ mod tests {
             .expect("consultar cipher_version");
         assert!(!cipher_version.is_empty());
 
-        // argon2 + zeroize
         let mut kdf_out = [0u8; 32];
         Argon2::default()
             .hash_password_into(b"senha-teste", b"saltsaltsaltsalt", &mut kdf_out)
             .expect("derivar chave argon2");
 
-        // chacha20poly1305
         let cipher = XChaCha20Poly1305::new((&kdf_out).into());
         let nonce = XNonce::from_slice(&[1u8; 24]);
         let ciphertext = cipher
@@ -62,18 +107,48 @@ mod tests {
         kdf_out.zeroize();
         assert_eq!(kdf_out, [0u8; 32]);
 
-        // uuid + serde
         let id = Uuid::new_v4().to_string();
         let item = ItemTeste { id };
         let json = serde_json::to_string(&item).expect("serializar");
         let decodificado: ItemTeste = serde_json::from_str(&json).expect("desserializar");
         assert_eq!(item, decodificado);
 
-        // unicode-normalization + chrono + thiserror
         let normalizado: String = "João".nfd().filter(|c| c.is_ascii()).collect();
         assert_eq!(normalizado.to_lowercase(), "joao");
         let data = NaiveDate::from_ymd_opt(2026, 11, 1).expect("data válida");
         assert_eq!(data.to_string(), "2026-11-01");
-        assert_eq!(TesteErro::Falha.to_string(), "erro de teste");
+    }
+
+    #[test]
+    fn estado_e_erros_f0_t4_funcionam() {
+        let state = AppState::new(PathBuf::from("/tmp/lc-pacientes-test"));
+        assert_eq!(state.verificar_desbloqueado(), Err(Erro::Bloqueado));
+
+        let key = Key::new([7u8; 32]);
+        // Debug nunca deve vazar os bytes da chave
+        assert_eq!(format!("{:?}", key), "Key([REDACTED])");
+        assert_eq!(key.as_bytes(), &[7u8; 32]);
+
+        let conn = Connection::open_in_memory().expect("abrir banco em memória");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("habilitar foreign_keys");
+        conn.execute_batch(MIGRACAO_001_INICIAL)
+            .expect("aplicar migração 001_inicial.sql");
+
+        *state.dek.lock().unwrap() = Some(key);
+        *state.conn.lock().unwrap() = Some(conn);
+
+        assert_eq!(state.verificar_desbloqueado(), Ok(()));
+
+        // Ao bloquear, DEK e conexão são removidas
+        state.bloquear().expect("bloquear estado");
+        assert_eq!(state.verificar_desbloqueado(), Err(Erro::Bloqueado));
+        assert!(state.dek.lock().unwrap().is_none());
+        assert!(state.conn.lock().unwrap().is_none());
+
+        // Serialização de erro para o frontend é genérica e em português
+        let json_erro = serde_json::to_string(&Erro::SenhaIncorreta).expect("serializar erro");
+        assert!(json_erro.contains("\"codigo\":\"SENHA_INCORRETA\""));
+        assert!(json_erro.contains("\"mensagem\":\"Senha incorreta\""));
     }
 }

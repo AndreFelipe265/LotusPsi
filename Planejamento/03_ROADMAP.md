@@ -25,11 +25,11 @@ flowchart LR
   - Capabilities mínimas.
   - Sem HTTP.
   - Desabilitar devtools em release.
-- [x] **F0-T3** Adicionar dependências Rust:
+- [x] **F0-T3** Adicionar dependências Rust: (`b385a35`)
   - `rusqlite` (bundled-sqlcipher)
   - `argon2`, `chacha20poly1305`, `zeroize`, `uuid`, `serde`, `thiserror`
   - `unicode-normalization`, `chrono`
-- [ ] **F0-T4** Criar o esqueleto dos módulos Rust (seção 2 da Arquitetura), `AppState` e `error.rs`.
+- [x] **F0-T4** Criar o esqueleto dos módulos Rust (seção 2 da Arquitetura), `AppState` e `error.rs`.
 - [ ] **F0-T5** Lint/format (clippy, rustfmt, eslint, prettier) e scripts `npm run dev/test/build`.
 - [ ] **F0-T6** Exportar o logo LC do PDF para `src/assets` e embutir a fonte local.
 
