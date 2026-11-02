@@ -50,6 +50,14 @@ pub fn run() {
             app.manage(AppState::new(data_dir));
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![
+            commands::auth::auth_status,
+            commands::auth::auth_setup,
+            commands::auth::auth_login,
+            commands::auth::auth_lock,
+            commands::auth::auth_change_password,
+            commands::auth::auth_recover,
+        ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");
 }

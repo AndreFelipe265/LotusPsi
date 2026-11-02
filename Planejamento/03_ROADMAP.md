@@ -42,8 +42,8 @@ flowchart LR
   - Gerador da chave de recuperação.
   - Testes.
 - [x] **F1-T2** `vault.rs`: ler/gravar `vault.json` de forma atômica e persistir o rate-limit (RN04). Testes. (`8d2c09d`)
-- [x] **F1-T3** `db.rs`: abrir SQLCipher com a DEK, WAL, foreign_keys e migração `001_inicial.sql` (seção 6).
-- [ ] **F1-T4** Comandos `auth_*` (status, setup, login, lock, change_password, recover).
+- [x] **F1-T3** `db.rs`: abrir SQLCipher com a DEK, WAL, foreign_keys e migração `001_inicial.sql` (seção 6). (`62b849a`)
+- [x] **F1-T4** Comandos `auth_*` (status, setup, login, lock, change_password, recover).
 - [ ] **F1-T5** Telas T01 (primeiro acesso + imprimir chave), T02 (login com aviso de bloqueio) e T03 (recuperar).
 - [ ] **F1-T6** `idle.ts`: bloqueio após 30 min, sem perder o estado (RN05); botão Sair (RN06).
 - [ ] **F1-T7** Limpar temporários e zerar a DEK no lock e ao fechar a janela.
