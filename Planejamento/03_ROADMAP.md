@@ -36,7 +36,7 @@ flowchart LR
 **Aceite:** `npm run tauri dev` abre uma janela com o logo e as cores; nenhuma requisição de rede.
 
 ## F1 — Núcleo de segurança (RN01–RN08, seção 7)
-- [ ] **F1-T1** `crypto.rs`:
+- [x] **F1-T1** `crypto.rs`:
   - Argon2id.
   - Wrap/unwrap da DEK com XChaCha20-Poly1305.
   - Gerador da chave de recuperação.
