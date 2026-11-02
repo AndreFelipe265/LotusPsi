@@ -20,3 +20,18 @@ export interface RespostaSetupAuth {
 
 export type StatusPaciente = "ativo" | "inativo";
 export type ModalidadeAtendimento = "particular" | "convenio";
+
+export interface PacienteResumo {
+  id: string;
+  nome: string;
+  data_nascimento?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  status: StatusPaciente;
+  ultima_sessao?: string | null;
+}
+
+export interface FiltroPacientes {
+  busca?: string;
+  status?: StatusPaciente | "todos";
+}

@@ -1,5 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { ErroApi, RespostaSetupAuth, StatusAuth } from "./types";
+import type {
+  ErroApi,
+  FiltroPacientes,
+  PacienteResumo,
+  RespostaSetupAuth,
+  StatusAuth,
+} from "./types";
 
 export const EVENTO_SESSAO_BLOQUEADA = "lc:sessao-bloqueada";
 
@@ -84,5 +90,14 @@ export function authRecover(chave: string, novaSenha: string): Promise<void> {
     chave,
     novaSenha,
     nova_senha: novaSenha,
+  });
+}
+
+export function pacientesListar(
+  filtro?: FiltroPacientes,
+): Promise<PacienteResumo[]> {
+  return invocarComando<PacienteResumo[]>("pacientes_listar", {
+    busca: filtro?.busca,
+    status: filtro?.status,
   });
 }
