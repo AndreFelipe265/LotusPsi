@@ -13,6 +13,16 @@ export function formatarDataBr(dataIso?: string | null): string {
 }
 
 /**
+ * Retorna a data local de hoje no formato ISO `AAAA-MM-DD`.
+ */
+export function obterDataHojeIso(referencia: Date = new Date()): string {
+  const ano = referencia.getFullYear();
+  const mes = String(referencia.getMonth() + 1).padStart(2, "0");
+  const dia = String(referencia.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+/**
  * Calcula a idade em anos completos a partir de uma data ISO (AAAA-MM-DD) (RN12).
  */
 export function calcularIdade(

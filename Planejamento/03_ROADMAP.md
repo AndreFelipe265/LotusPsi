@@ -74,7 +74,7 @@ flowchart LR
 **Aceite:** criar, editar, buscar "joao" → "João", inativar e reativar, excluir com confirmação.
 
 ## F4 — Sessões (RN20–RN27, T08)
-- [ ] **F4-T1** Comandos de sessões com validação (data não futura, ≤ 600 caracteres). Testes.
+- [x] **F4-T1** Comandos de sessões com validação (data não futura, ≤ 600 caracteres). Testes. (`622c232`)
 - [ ] **F4-T2** Modal T08 com contador 0/600 e data padrão = hoje.
 - [ ] **F4-T3** Histórico compacto no perfil:
   - Ordem decrescente.

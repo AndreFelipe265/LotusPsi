@@ -4,5 +4,6 @@ export * from "./EmptyState";
 export * from "./Input";
 export * from "./Layout";
 export * from "./Modal";
+export * from "./SessaoModal";
 export * from "./Sidebar";
 export * from "./Toast";
