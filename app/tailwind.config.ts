@@ -7,7 +7,13 @@ export default {
     extend: {
       colors: themeColors,
       fontFamily: {
-        sans: ['"Nunito"', "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: [
+          '"Open Sans Local"',
+          '"Nunito"',
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       fontSize: {
         base: ["1rem", { lineHeight: "1.5rem" }],

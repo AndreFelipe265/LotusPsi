@@ -3,9 +3,15 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 import { themeColors } from "./lib/theme";
 
-describe("App e identidade visual (F0-T1)", () => {
-  it("renderiza o título principal e identificação da profissional em pt-BR", () => {
+describe("App e identidade visual (F0-T1 e F0-T6)", () => {
+  it("renderiza o logo LC, título principal e identificação da profissional em pt-BR", () => {
     render(<App />);
+    const logo = screen.getByRole("img", {
+      name: /Logo LC — Louriedna Costa Pereira/i,
+    });
+    expect(logo).toBeInTheDocument();
+    expect(logo.getAttribute("src")).toBeTruthy();
+
     expect(
       screen.getByRole("heading", { name: /LC Pacientes/i }),
     ).toBeInTheDocument();
