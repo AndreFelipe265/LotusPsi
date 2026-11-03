@@ -218,7 +218,7 @@ export function Inicio() {
             data-testid="saudacao-horario"
             className="text-base font-semibold text-lilas-acinzentado"
           >
-            {saudacaoHorario}, Louriedna!
+            {saudacaoHorario}, Louriedna Costa!
           </p>
           <h2 className="text-2xl font-bold text-malva">
             Olá, Louriedna! — Painel Inicial
