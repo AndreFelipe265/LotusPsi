@@ -18,6 +18,7 @@ export interface SessaoModalProps {
   pacienteId: string;
   pacienteNome?: string;
   sessaoParaEditar?: Sessao | null;
+  dataInicialIso?: string;
   aoFechar: () => void;
   aoSalva: (sessao: Sessao) => void;
   dataHojeIso?: string;
@@ -34,6 +35,7 @@ export function SessaoModal({
   pacienteId,
   pacienteNome,
   sessaoParaEditar = null,
+  dataInicialIso,
   aoFechar,
   aoSalva,
   dataHojeIso,
@@ -42,10 +44,13 @@ export function SessaoModal({
   const erroResumoId = useId();
 
   const hojeIso = dataHojeIso ?? obterDataHojeIso();
+  const dataPadraoCriacaoIso = dataInicialIso ?? hojeIso;
   const modoEdicao = Boolean(sessaoParaEditar);
 
   const [dataBr, setDataBr] = useState<string>(() =>
-    formatarDataBr(sessaoParaEditar ? sessaoParaEditar.data : hojeIso),
+    formatarDataBr(
+      sessaoParaEditar ? sessaoParaEditar.data : dataPadraoCriacaoIso,
+    ),
   );
   const [resumo, setResumo] = useState<string>(() =>
     sessaoParaEditar ? sessaoParaEditar.resumo : "",
@@ -69,7 +74,7 @@ export function SessaoModal({
         formatarDataBr(
           sessaoParaEditar
             ? sessaoParaEditar.data
-            : (dataHojeIso ?? obterDataHojeIso()),
+            : (dataInicialIso ?? dataHojeIso ?? obterDataHojeIso()),
         ),
       );
       setResumo(sessaoParaEditar ? sessaoParaEditar.resumo : "");
@@ -81,7 +86,7 @@ export function SessaoModal({
 
     estavaAbertoRef.current = aberto;
     idEdicaoAnteriorRef.current = idEdicaoAtual;
-  }, [aberto, sessaoParaEditar, dataHojeIso]);
+  }, [aberto, sessaoParaEditar, dataInicialIso, dataHojeIso]);
 
   const totalCaracteres = Array.from(resumo).length;
 

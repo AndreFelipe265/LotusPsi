@@ -260,3 +260,179 @@ export function calcularForcaSenha(senha: string): {
   }
   return { nivel: "forte", rotulo: "Força: Forte", pontuacao: 4 };
 }
+
+/**
+ * Aplica máscara progressiva de horário `HH:MM` durante a digitação.
+ */
+export function aplicarMascaraHoraBr(valor: string): string {
+  const limpo = valor.trim();
+  if (/^\d{1,2}:\d{0,2}$/.test(limpo)) {
+    return limpo;
+  }
+  const digitos = extrairDigitos(valor).slice(0, 4);
+  if (digitos.length <= 2) return digitos;
+  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
+}
+
+/**
+ * Valida e normaliza um horário `HH:MM` (entre `00:00` e `23:59`).
+ * Retorna `null` se inválido.
+ */
+export function validarHoraHhMm(texto: string): string | null {
+  const limpo = texto.trim();
+  const match = /^(\d{1,2}):(\d{2})$/.exec(limpo);
+  if (!match) return null;
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  if (!Number.isInteger(h) || !Number.isInteger(m)) return null;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export function horaParaMinutos(horaHhMm: string): number | null {
+  const norm = validarHoraHhMm(horaHhMm);
+  if (!norm) return null;
+  const [h, m] = norm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+export function intervalosHorariosConflitam(
+  horaA: string,
+  duracaoA: number,
+  horaB: string,
+  duracaoB: number,
+): boolean {
+  const iniA = horaParaMinutos(horaA);
+  const iniB = horaParaMinutos(horaB);
+  if (iniA === null || iniB === null) return false;
+  const fimA = iniA + Math.max(1, duracaoA);
+  const fimB = iniB + Math.max(1, duracaoB);
+  return iniA < fimB && iniB < fimA;
+}
+
+const NOMES_DIAS_SEMANA_CURTOS = [
+  "Dom",
+  "Seg",
+  "Ter",
+  "Qua",
+  "Qui",
+  "Sex",
+  "Sáb",
+] as const;
+
+const NOMES_MESES_BR = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+] as const;
+
+function parseDataIsoLocal(dataIso: string): Date {
+  const [ano, mes, dia] = dataIso.split("-").map(Number);
+  return new Date(ano, (mes || 1) - 1, dia || 1);
+}
+
+export interface DiaCalendarioSemana {
+  dataIso: string;
+  nomeCurto: string;
+  diaMesBr: string;
+}
+
+/**
+ * Retorna os 7 dias da semana (Segunda a Domingo) que contém `dataReferenciaIso`.
+ */
+export function obterDiasDaSemana(
+  dataReferenciaIso: string,
+): DiaCalendarioSemana[] {
+  const ref = parseDataIsoLocal(dataReferenciaIso);
+  const diaSemana = ref.getDay(); // 0 = Dom, 1 = Seg, ..., 6 = Sáb
+  const deslocamentoSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  const segunda = new Date(
+    ref.getFullYear(),
+    ref.getMonth(),
+    ref.getDate() + deslocamentoSegunda,
+  );
+
+  const dias: DiaCalendarioSemana[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(
+      segunda.getFullYear(),
+      segunda.getMonth(),
+      segunda.getDate() + i,
+    );
+    const dataIso = obterDataHojeIso(d);
+    const nomeCurto = NOMES_DIAS_SEMANA_CURTOS[d.getDay()];
+    const diaStr = String(d.getDate()).padStart(2, "0");
+    const mesStr = String(d.getMonth() + 1).padStart(2, "0");
+    dias.push({
+      dataIso,
+      nomeCurto,
+      diaMesBr: `${diaStr}/${mesStr}`,
+    });
+  }
+  return dias;
+}
+
+export interface DiaCalendarioMes {
+  dataIso: string;
+  dia: number;
+  nomeCurto: string;
+}
+
+/**
+ * Retorna todos os dias do mês correspondente a `dataReferenciaIso`.
+ */
+export function obterDiasDoMes(dataReferenciaIso: string): DiaCalendarioMes[] {
+  const ref = parseDataIsoLocal(dataReferenciaIso);
+  const ano = ref.getFullYear();
+  const mes = ref.getMonth();
+  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+
+  const dias: DiaCalendarioMes[] = [];
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const d = new Date(ano, mes, dia);
+    dias.push({
+      dataIso: obterDataHojeIso(d),
+      dia,
+      nomeCurto: NOMES_DIAS_SEMANA_CURTOS[d.getDay()],
+    });
+  }
+  return dias;
+}
+
+export function deslocarDiasIso(
+  dataReferenciaIso: string,
+  dias: number,
+): string {
+  const ref = parseDataIsoLocal(dataReferenciaIso);
+  const nova = new Date(
+    ref.getFullYear(),
+    ref.getMonth(),
+    ref.getDate() + dias,
+  );
+  return obterDataHojeIso(nova);
+}
+
+export function deslocarMesesIso(
+  dataReferenciaIso: string,
+  meses: number,
+): string {
+  const ref = parseDataIsoLocal(dataReferenciaIso);
+  const nova = new Date(ref.getFullYear(), ref.getMonth() + meses, 1);
+  return obterDataHojeIso(nova);
+}
+
+export function formatarMesAnoBr(dataReferenciaIso: string): string {
+  const ref = parseDataIsoLocal(dataReferenciaIso);
+  const nomeMes = NOMES_MESES_BR[ref.getMonth()] ?? "";
+  return `${nomeMes} de ${ref.getFullYear()}`;
+}

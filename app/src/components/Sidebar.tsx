@@ -15,6 +15,7 @@ interface ItemMenu {
 const ITENS_MENU_LATERAL: readonly ItemMenu[] = [
   { rotulo: "Início", caminho: "/", end: true },
   { rotulo: "Pacientes", caminho: "/pacientes" },
+  { rotulo: "Agenda", caminho: "/agenda" },
   { rotulo: "Documentos", caminho: "/documentos" },
   { rotulo: "Configurações", caminho: "/configuracoes" },
 ];

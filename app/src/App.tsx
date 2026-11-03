@@ -11,6 +11,7 @@ import {
   TEMPO_INATIVIDADE_PADRAO_MS,
   useDetectorInatividade,
 } from "./lib/idle";
+import { Agenda } from "./pages/Agenda";
 import { Configuracoes } from "./pages/Configuracoes";
 import { Documentos } from "./pages/Documentos";
 import { Inicio } from "./pages/Inicio";
@@ -150,6 +151,7 @@ export function App({
             <Route path="/pacientes/novo" element={<PacienteForm />} />
             <Route path="/pacientes/:id" element={<PacientePerfil />} />
             <Route path="/pacientes/:id/editar" element={<PacienteForm />} />
+            <Route path="/agenda" element={<Agenda />} />
             <Route path="/documentos" element={<Documentos />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             <Route path="*" element={<Navigate to="/" replace />} />

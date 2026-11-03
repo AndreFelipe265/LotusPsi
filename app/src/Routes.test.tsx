@@ -63,6 +63,12 @@ describe("Rotas com guarda de sessão (F2-T2)", () => {
       await screen.findByRole("heading", { name: /^Documentos$/i }),
     ).toBeInTheDocument();
 
+    // 1 clique para Agenda (RN70)
+    fireEvent.click(screen.getByRole("link", { name: /^Agenda$/i }));
+    expect(
+      await screen.findByRole("heading", { name: /^Agenda$/i }),
+    ).toBeInTheDocument();
+
     // 1 clique para Configurações
     fireEvent.click(screen.getByRole("link", { name: /^Configurações$/i }));
     expect(
