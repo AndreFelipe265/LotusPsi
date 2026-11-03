@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { authLock, authStatus, EVENTO_SESSAO_BLOQUEADA } from "./lib/api";
+import {
+  authLock,
+  authStatus,
+  EVENTO_SESSAO_BLOQUEADA,
+  EVENTO_SESSAO_DESBLOQUEADA,
+} from "./lib/api";
 import {
   TEMPO_INATIVIDADE_PADRAO_MS,
   useDetectorInatividade,
@@ -101,9 +106,13 @@ export function App({
     return (
       <Recuperar
         aoRecuperarComSucesso={() => {
+          const jaIniciada = sessaoIniciada;
           setExibindoRecuperar(false);
           setDesbloqueado(true);
           setSessaoIniciada(true);
+          if (jaIniciada && typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent(EVENTO_SESSAO_DESBLOQUEADA));
+          }
         }}
         aoVoltarParaLogin={() => {
           setExibindoRecuperar(false);
@@ -152,6 +161,11 @@ export function App({
             modoOverlay
             aoEntrar={() => {
               setDesbloqueado(true);
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent(EVENTO_SESSAO_DESBLOQUEADA),
+                );
+              }
             }}
             aoIrParaRecuperar={() => {
               setExibindoRecuperar(true);

@@ -14,6 +14,7 @@ import type {
 } from "./types";
 
 export const EVENTO_SESSAO_BLOQUEADA = "lc:sessao-bloqueada";
+export const EVENTO_SESSAO_DESBLOQUEADA = "lc:sessao-desbloqueada";
 
 /**
  * Wrapper tipado para chamadas `invoke` ao backend Rust.
@@ -161,4 +162,16 @@ export function sessaoAtualizar(
 
 export function sessaoExcluir(id: string): Promise<void> {
   return invocarComando<void>("sessao_excluir", { id });
+}
+
+export function boasVindasObter(): Promise<string> {
+  return invocarComando<string>("boas_vindas_obter");
+}
+
+export function configObter(chave: string): Promise<string | null> {
+  return invocarComando<string | null>("config_obter", { chave });
+}
+
+export function configDefinir(chave: string, valor: string): Promise<void> {
+  return invocarComando<void>("config_definir", { chave, valor });
 }

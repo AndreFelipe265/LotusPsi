@@ -23,6 +23,53 @@ export function obterDataHojeIso(referencia: Date = new Date()): string {
 }
 
 /**
+ * Retorna a saudação conforme o horário local (RN62: Bom dia / Boa tarde / Boa noite).
+ */
+export function obterSaudacaoHorario(
+  referencia: Date = new Date(),
+): "Bom dia" | "Boa tarde" | "Boa noite" {
+  const hora = referencia.getHours();
+  if (hora >= 5 && hora < 12) return "Bom dia";
+  if (hora >= 12 && hora < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+/**
+ * Lista fixa de mensagens de boas-vindas do MVP (RN61).
+ */
+export const MENSAGENS_BOAS_VINDAS: readonly string[] = [
+  "Eu te amo, mãe! ❤️",
+  "Bom te ver de novo, Louriedna!",
+  "Que seu dia seja leve e cheio de bons encontros.",
+  "Você faz a diferença na vida de muita gente.",
+  "Respire fundo: hoje vai ser um bom dia.",
+  "Obrigado por cuidar de tantas pessoas com tanto carinho.",
+];
+
+/**
+ * Sorteia um índice da lista de boas-vindas sem repetir o índice anterior (RN60, RN62).
+ */
+export function sortearIndiceBoasVindas(
+  ultimoIndice: number | null,
+  aleatorio: number = Math.random(),
+): number {
+  const total = MENSAGENS_BOAS_VINDAS.length;
+  if (total <= 1) return 0;
+
+  if (
+    ultimoIndice !== null &&
+    Number.isInteger(ultimoIndice) &&
+    ultimoIndice >= 0 &&
+    ultimoIndice < total
+  ) {
+    const deslocamento = Math.floor(aleatorio * (total - 1)) % (total - 1);
+    return (ultimoIndice + 1 + deslocamento) % total;
+  }
+
+  return Math.floor(aleatorio * total) % total;
+}
+
+/**
  * Calcula a idade em anos completos a partir de uma data ISO (AAAA-MM-DD) (RN12).
  */
 export function calcularIdade(

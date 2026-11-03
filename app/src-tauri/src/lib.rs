@@ -77,6 +77,9 @@ pub fn run() {
             commands::sessoes::sessao_criar,
             commands::sessoes::sessao_atualizar,
             commands::sessoes::sessao_excluir,
+            commands::config::boas_vindas_obter,
+            commands::config::config_obter,
+            commands::config::config_definir,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");

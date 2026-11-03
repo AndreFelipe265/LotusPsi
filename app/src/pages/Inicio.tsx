@@ -1,15 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Modal, SessaoModal, Toast } from "../components";
-import { pacientesListar } from "../lib/api";
+import {
+  boasVindasObter,
+  EVENTO_SESSAO_DESBLOQUEADA,
+  pacientesListar,
+} from "../lib/api";
 import {
   extrairDigitos,
   formatarDataBr,
   formatarIdadeComNascimento,
   formatarTelefoneBr,
+  MENSAGENS_BOAS_VINDAS,
   obterDataHojeIso,
+  obterSaudacaoHorario,
+  sortearIndiceBoasVindas,
 } from "../lib/format";
 import type { PacienteResumo } from "../lib/types";
+
+let ultimoIndiceBoasVindasLocal: number | null = null;
+
+function sortearMensagemBoasVindasLocal(): string {
+  const proximoIndice = sortearIndiceBoasVindas(ultimoIndiceBoasVindasLocal);
+  ultimoIndiceBoasVindasLocal = proximoIndice;
+  return MENSAGENS_BOAS_VINDAS[proximoIndice];
+}
 
 function normalizarTextoLocal(texto: string): string {
   return texto
@@ -33,12 +48,37 @@ export function Inicio() {
     useState<PacienteResumo | null>(null);
   const [modalSessaoAberto, setModalSessaoAberto] = useState<boolean>(false);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
+  const [mensagemBoasVindas, setMensagemBoasVindas] = useState<string>(() =>
+    sortearMensagemBoasVindasLocal(),
+  );
 
+  const saudacaoHorario = obterSaudacaoHorario();
   const dataHojeBr = formatarDataBr(obterDataHojeIso());
   const totalAtivos = pacientesAtivos.length;
 
+  const carregarBoasVindas = useCallback((rotacionarFallback: boolean) => {
+    boasVindasObter()
+      .then((msg) => {
+        if (typeof msg === "string" && msg.trim().length > 0) {
+          const idx = MENSAGENS_BOAS_VINDAS.indexOf(msg);
+          if (idx >= 0) {
+            ultimoIndiceBoasVindasLocal = idx;
+          }
+          setMensagemBoasVindas(msg);
+        } else if (rotacionarFallback) {
+          setMensagemBoasVindas(sortearMensagemBoasVindasLocal());
+        }
+      })
+      .catch(() => {
+        if (rotacionarFallback) {
+          setMensagemBoasVindas(sortearMensagemBoasVindasLocal());
+        }
+      });
+  }, []);
+
   useEffect(() => {
     let cancelado = false;
+    carregarBoasVindas(false);
     pacientesListar({ status: "ativo" })
       .then((lista) => {
         if (!cancelado && Array.isArray(lista)) {
@@ -52,7 +92,17 @@ export function Inicio() {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [carregarBoasVindas]);
+
+  useEffect(() => {
+    const aoDesbloquear = () => {
+      carregarBoasVindas(true);
+    };
+    window.addEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
+    return () => {
+      window.removeEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
+    };
+  }, [carregarBoasVindas]);
 
   const pacientesFiltradosBuscaRapida = useMemo(() => {
     const termo = buscaRapida.trim();
@@ -110,9 +160,21 @@ export function Inicio() {
     <div className="max-w-5xl mx-auto space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-fundo-claro border border-rosa-claro rounded-2xl p-6 shadow-xs">
         <div className="space-y-1">
+          <p
+            data-testid="saudacao-horario"
+            className="text-base font-semibold text-lilas-acinzentado"
+          >
+            {saudacaoHorario}, Louriedna!
+          </p>
           <h2 className="text-2xl font-bold text-malva">
             Olá, Louriedna! — Painel Inicial
           </h2>
+          <p
+            data-testid="mensagem-boas-vindas"
+            className="text-lg font-semibold text-malva"
+          >
+            {mensagemBoasVindas}
+          </p>
           <p className="text-base text-texto">
             Bem-vinda ao seu consultório. Hoje é <strong>{dataHojeBr}</strong>.
           </p>

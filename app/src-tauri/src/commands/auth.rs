@@ -32,6 +32,7 @@ pub struct RespostaSetupAuth {
 
 fn abrir_e_armazenar_sessao(state: &AppState, dek: Key) -> Resultado<()> {
     let conn = abrir_banco(&state.data_dir, &dek)?;
+    let _ = crate::commands::config::rotacionar_boas_vindas_conn(&conn)?;
     let mut conn_guard = state.conn.lock().map_err(|_| Erro::Interno)?;
     let mut dek_guard = state.dek.lock().map_err(|_| Erro::Interno)?;
     *conn_guard = Some(conn);

@@ -3,6 +3,11 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import * as api from "./lib/api";
+import {
+  MENSAGENS_BOAS_VINDAS,
+  obterSaudacaoHorario,
+  sortearIndiceBoasVindas,
+} from "./lib/format";
 import { Inicio } from "./pages/Inicio";
 
 describe("Painel Inicial T04 (F2-T3)", () => {
@@ -250,5 +255,95 @@ describe("Painel Inicial T04 (F2-T3)", () => {
         }),
       );
     });
+  });
+
+  it("exibe saudação por horário e boas-vindas rotativas sem repetir a anterior ao logar 3 vezes (F4.5-T1 — RN60–RN62)", async () => {
+    expect(MENSAGENS_BOAS_VINDAS).toContain("Eu te amo, mãe! ❤️");
+    expect(MENSAGENS_BOAS_VINDAS.length).toBe(6);
+
+    for (let idx = 0; idx < MENSAGENS_BOAS_VINDAS.length; idx++) {
+      for (let step = 0; step < 20; step++) {
+        const sorteado = sortearIndiceBoasVindas(idx, (step + 0.3) / 20);
+        expect(sorteado).not.toBe(idx);
+      }
+    }
+
+    expect(obterSaudacaoHorario(new Date(2026, 10, 2, 9, 0))).toBe("Bom dia");
+    expect(obterSaudacaoHorario(new Date(2026, 10, 2, 14, 30))).toBe(
+      "Boa tarde",
+    );
+    expect(obterSaudacaoHorario(new Date(2026, 10, 2, 20, 15))).toBe(
+      "Boa noite",
+    );
+
+    let indiceAtual = -1;
+    vi.spyOn(api, "authStatus").mockResolvedValue({
+      configurado: true,
+      desbloqueado: false,
+    });
+    vi.spyOn(api, "pacientesListar").mockResolvedValue([]);
+    vi.spyOn(api, "authLock").mockResolvedValue(undefined);
+    vi.spyOn(api, "authLogin").mockImplementation(async () => {
+      indiceAtual = sortearIndiceBoasVindas(
+        indiceAtual >= 0 ? indiceAtual : null,
+      );
+    });
+    vi.spyOn(api, "boasVindasObter").mockImplementation(async () => {
+      return MENSAGENS_BOAS_VINDAS[indiceAtual >= 0 ? indiceAtual : 0];
+    });
+
+    render(<App rotaInicial="/" />);
+
+    // 1º Login
+    const inputSenha1 = await screen.findByLabelText(/Senha de acesso/i);
+    fireEvent.change(inputSenha1, { target: { value: "MinhaSenha123" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Entrar$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("mensagem-boas-vindas")).toHaveTextContent(
+        MENSAGENS_BOAS_VINDAS[indiceAtual],
+      );
+    });
+    expect(screen.getByTestId("saudacao-horario")).toHaveTextContent(
+      /Bom dia|Boa tarde|Boa noite/,
+    );
+    const msgLogin1 = screen.getByTestId("mensagem-boas-vindas").textContent;
+    expect(MENSAGENS_BOAS_VINDAS).toContain(msgLogin1);
+
+    // Bloquear (Sair) e 2º Login
+    fireEvent.click(screen.getByRole("button", { name: /^Sair$/i }));
+    const inputSenha2 = await screen.findByLabelText(/Senha de acesso/i);
+    fireEvent.change(inputSenha2, { target: { value: "MinhaSenha123" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Entrar$/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: /Sessão bloqueada/i }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("mensagem-boas-vindas").textContent).not.toBe(
+        msgLogin1,
+      );
+    });
+    const msgLogin2 = screen.getByTestId("mensagem-boas-vindas").textContent;
+    expect(MENSAGENS_BOAS_VINDAS).toContain(msgLogin2);
+    expect(msgLogin2).not.toBe(msgLogin1);
+
+    // Bloquear (Sair) e 3º Login
+    fireEvent.click(screen.getByRole("button", { name: /^Sair$/i }));
+    const inputSenha3 = await screen.findByLabelText(/Senha de acesso/i);
+    fireEvent.change(inputSenha3, { target: { value: "MinhaSenha123" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Entrar$/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: /Sessão bloqueada/i }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("mensagem-boas-vindas").textContent).not.toBe(
+        msgLogin2,
+      );
+    });
+    const msgLogin3 = screen.getByTestId("mensagem-boas-vindas").textContent;
+    expect(MENSAGENS_BOAS_VINDAS).toContain(msgLogin3);
+    expect(msgLogin3).not.toBe(msgLogin2);
   });
 });
