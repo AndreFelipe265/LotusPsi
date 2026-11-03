@@ -9,6 +9,7 @@ import {
   Toast,
 } from "../components";
 import {
+  agendamentoProximoPaciente,
   extrairErroApi,
   pacienteDefinirStatus,
   pacienteExcluir,
@@ -22,7 +23,7 @@ import {
   formatarMoedaBr,
   formatarTelefoneBr,
 } from "../lib/format";
-import type { Paciente, Sessao } from "../lib/types";
+import type { Agendamento, Paciente, Sessao } from "../lib/types";
 
 function ordenarSessoesDecrescente(lista: Sessao[]): Sessao[] {
   return [...lista].sort((a, b) => {
@@ -38,6 +39,8 @@ export function PacientePerfil() {
 
   const [paciente, setPaciente] = useState<Paciente | null>(null);
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
+  const [proximoAgendamento, setProximoAgendamento] =
+    useState<Agendamento | null>(null);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [erroMensagem, setErroMensagem] = useState<string | null>(null);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
@@ -68,13 +71,19 @@ export function PacientePerfil() {
     Promise.all([
       pacienteObter(id),
       sessoesListar(id).catch(() => [] as Sessao[]),
+      agendamentoProximoPaciente(id).catch(() => null),
     ])
-      .then(([dadosPaciente, listaSessoes]) => {
+      .then(([dadosPaciente, listaSessoes, proxAg]) => {
         if (!cancelado) {
           const sessoesValidas = Array.isArray(listaSessoes)
             ? ordenarSessoesDecrescente(listaSessoes)
             : [];
           setSessoes(sessoesValidas);
+          setProximoAgendamento(
+            proxAg && typeof proxAg === "object" && "data" in proxAg
+              ? proxAg
+              : null,
+          );
           if (sessoesValidas.length > 0) {
             setPaciente({
               ...dadosPaciente,
@@ -291,6 +300,12 @@ export function PacientePerfil() {
                 <strong>E-mail:</strong> {paciente.email}
               </span>
             )}
+            <span data-testid="proximo-agendamento-paciente">
+              <strong>Próximo agendamento:</strong>{" "}
+              {proximoAgendamento
+                ? `${formatarDataBr(proximoAgendamento.data)} às ${proximoAgendamento.hora_inicio}`
+                : "Nenhum agendado"}
+            </span>
           </div>
 
           {paciente.status === "inativo" && paciente.inativado_em && (

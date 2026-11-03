@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Modal, SessaoModal, Toast } from "../components";
 import {
+  agendamentosListar,
   boasVindasObter,
   EVENTO_SESSAO_DESBLOQUEADA,
   pacientesListar,
@@ -11,12 +12,13 @@ import {
   formatarDataBr,
   formatarIdadeComNascimento,
   formatarTelefoneBr,
+  intervalosHorariosConflitam,
   MENSAGENS_BOAS_VINDAS,
   obterDataHojeIso,
   obterSaudacaoHorario,
   sortearIndiceBoasVindas,
 } from "../lib/format";
-import type { PacienteResumo } from "../lib/types";
+import type { Agendamento, PacienteResumo } from "../lib/types";
 
 let ultimoIndiceBoasVindasLocal: number | null = null;
 
@@ -37,24 +39,59 @@ function normalizarTextoLocal(texto: string): string {
 export function Inicio() {
   const navigate = useNavigate();
   const [pacientesAtivos, setPacientesAtivos] = useState<PacienteResumo[]>([]);
+  const [sessoesHoje, setSessoesHoje] = useState<Agendamento[]>([]);
   const [mostrarProximos7Dias, setMostrarProximos7Dias] =
     useState<boolean>(false);
   const [rascunhoRapido, setRascunhoRapido] = useState<string>("");
 
-  // Fluxo F4-T4: Atalho "Registrar sessão" -> busca rápida de paciente -> Modal T08
+  // Fluxo F4-T4 / RN76: Atalho "Registrar sessão" ou "Sessões de hoje" -> Modal T08
   const [modalBuscaAberta, setModalBuscaAberta] = useState<boolean>(false);
   const [buscaRapida, setBuscaRapida] = useState<string>("");
   const [pacienteSelecionado, setPacienteSelecionado] =
     useState<PacienteResumo | null>(null);
+  const [dataSessaoSelecionadaIso, setDataSessaoSelecionadaIso] = useState<
+    string | undefined
+  >(undefined);
   const [modalSessaoAberto, setModalSessaoAberto] = useState<boolean>(false);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
   const [mensagemBoasVindas, setMensagemBoasVindas] = useState<string>(() =>
     sortearMensagemBoasVindasLocal(),
   );
 
+  const hojeIso = obterDataHojeIso();
   const saudacaoHorario = obterSaudacaoHorario();
-  const dataHojeBr = formatarDataBr(obterDataHojeIso());
+  const dataHojeBr = formatarDataBr(hojeIso);
   const totalAtivos = pacientesAtivos.length;
+
+  const carregarSessoesHoje = useCallback((dataIso: string) => {
+    agendamentosListar({ data_inicio: dataIso, data_fim: dataIso })
+      .then((lista) => {
+        if (Array.isArray(lista)) {
+          const copia = lista.map((item) => ({ ...item }));
+          for (let i = 0; i < copia.length; i++) {
+            for (let j = 0; j < copia.length; j++) {
+              if (
+                i !== j &&
+                copia[i].data === copia[j].data &&
+                intervalosHorariosConflitam(
+                  copia[i].hora_inicio,
+                  copia[i].duracao_min,
+                  copia[j].hora_inicio,
+                  copia[j].duracao_min,
+                )
+              ) {
+                copia[i].conflito = true;
+              }
+            }
+          }
+          copia.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+          setSessoesHoje(copia);
+        }
+      })
+      .catch(() => {
+        // Mantém lista vazia em caso de erro inicial
+      });
+  }, []);
 
   const carregarBoasVindas = useCallback((rotacionarFallback: boolean) => {
     boasVindasObter()
@@ -79,6 +116,7 @@ export function Inicio() {
   useEffect(() => {
     let cancelado = false;
     carregarBoasVindas(false);
+    carregarSessoesHoje(hojeIso);
     pacientesListar({ status: "ativo" })
       .then((lista) => {
         if (!cancelado && Array.isArray(lista)) {
@@ -92,17 +130,18 @@ export function Inicio() {
     return () => {
       cancelado = true;
     };
-  }, [carregarBoasVindas]);
+  }, [carregarBoasVindas, carregarSessoesHoje, hojeIso]);
 
   useEffect(() => {
     const aoDesbloquear = () => {
       carregarBoasVindas(true);
+      carregarSessoesHoje(hojeIso);
     };
     window.addEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
     return () => {
       window.removeEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
     };
-  }, [carregarBoasVindas]);
+  }, [carregarBoasVindas, carregarSessoesHoje, hojeIso]);
 
   const pacientesFiltradosBuscaRapida = useMemo(() => {
     const termo = buscaRapida.trim();
@@ -150,10 +189,25 @@ export function Inicio() {
       });
   }
 
-  function selecionarPacienteParaSessao(paciente: PacienteResumo) {
+  function selecionarPacienteParaSessao(
+    paciente: PacienteResumo,
+    dataIso?: string,
+  ) {
     setPacienteSelecionado(paciente);
+    setDataSessaoSelecionadaIso(dataIso);
     setModalBuscaAberta(false);
     setModalSessaoAberto(true);
+  }
+
+  function registrarSessaoDeAgendamento(ag: Agendamento) {
+    selecionarPacienteParaSessao(
+      {
+        id: ag.paciente_id,
+        nome: ag.paciente_nome,
+        status: "ativo",
+      },
+      ag.data,
+    );
   }
 
   return (
@@ -230,6 +284,87 @@ export function Inicio() {
             Documentos
           </Button>
         </div>
+      </section>
+
+      {/* Sessões de hoje na Agenda (RN75, RN76) */}
+      <section
+        aria-label="Sessões de hoje"
+        data-testid="secao-sessoes-hoje"
+        className="bg-fundo-claro border border-rosa-claro rounded-2xl p-6 space-y-4 shadow-xs"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-malva">Sessões de hoje</h3>
+            <p className="text-base text-texto">
+              Atendimentos agendados para hoje ({dataHojeBr}).
+            </p>
+          </div>
+          <Button variante="contorno" onClick={() => navigate("/agenda")}>
+            Abrir agenda
+          </Button>
+        </div>
+
+        {sessoesHoje.length === 0 ? (
+          <p className="text-base text-texto">
+            Nenhuma sessão agendada para hoje ({dataHojeBr}).
+          </p>
+        ) : (
+          <ul
+            data-testid="lista-sessoes-hoje"
+            className="divide-y divide-rosa-claro border border-rosa-claro rounded-xl bg-fundo"
+          >
+            {sessoesHoje.map((ag) => (
+              <li
+                key={ag.id}
+                data-testid={`sessao-hoje-${ag.id}`}
+                className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              >
+                <div className="space-y-0.5 text-base text-texto">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-malva">
+                      {ag.hora_inicio}
+                    </span>
+                    <span>—</span>
+                    <span className="font-bold text-texto">
+                      {ag.paciente_nome}
+                    </span>
+                    {ag.conflito && (
+                      <span
+                        data-testid={`conflito-sessao-hoje-${ag.id}`}
+                        className="px-2.5 py-0.5 rounded-full bg-rosa-claro/60 border border-malva text-base font-semibold text-texto"
+                      >
+                        Conflito de horário
+                      </span>
+                    )}
+                  </div>
+                  {ag.observacao && (
+                    <p className="text-base text-lilas-acinzentado">
+                      {ag.observacao}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  <Button
+                    variante="primario"
+                    className="px-3.5 py-2"
+                    data-testid={`registrar-sessao-hoje-${ag.id}`}
+                    onClick={() => registrarSessaoDeAgendamento(ag)}
+                  >
+                    Registrar sessão
+                  </Button>
+                  <Button
+                    variante="contorno"
+                    className="px-3.5 py-2"
+                    onClick={() => navigate(`/pacientes/${ag.paciente_id}`)}
+                  >
+                    Ver perfil
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -384,13 +519,16 @@ export function Inicio() {
           aberto={modalSessaoAberto}
           pacienteId={pacienteSelecionado.id}
           pacienteNome={pacienteSelecionado.nome}
+          dataInicialIso={dataSessaoSelecionadaIso}
           aoFechar={() => {
             setModalSessaoAberto(false);
             setPacienteSelecionado(null);
+            setDataSessaoSelecionadaIso(undefined);
           }}
           aoSalva={() => {
             setModalSessaoAberto(false);
             setPacienteSelecionado(null);
+            setDataSessaoSelecionadaIso(undefined);
             setToastSucesso("Sessão registrada com sucesso.");
           }}
         />

@@ -5,6 +5,7 @@ import App from "./App";
 import * as api from "./lib/api";
 import {
   MENSAGENS_BOAS_VINDAS,
+  obterDataHojeIso,
   obterSaudacaoHorario,
   sortearIndiceBoasVindas,
 } from "./lib/format";
@@ -345,5 +346,91 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     const msgLogin3 = screen.getByTestId("mensagem-boas-vindas").textContent;
     expect(MENSAGENS_BOAS_VINDAS).toContain(msgLogin3);
     expect(msgLogin3).not.toBe(msgLogin2);
+  });
+
+  it("exibe 'Sessões de hoje' com horário, nome do paciente, aviso de conflito e permite registrar sessão (F4.5-T4 — RN75, RN76)", async () => {
+    const hojeIso = obterDataHojeIso();
+    vi.spyOn(api, "pacientesListar").mockResolvedValue([]);
+    vi.spyOn(api, "agendamentosListar").mockResolvedValue([
+      {
+        id: "ag-1",
+        paciente_id: "p-joao",
+        paciente_nome: "João da Conceição",
+        data: hojeIso,
+        hora_inicio: "14:00",
+        duracao_min: 50,
+        observacao: "Atendimento quinzenal",
+        criado_em: `${hojeIso}T09:00:00Z`,
+        atualizado_em: `${hojeIso}T09:00:00Z`,
+        conflito: true,
+        conflito_descricao: "Conflito de horário com Ana Beatriz (14:00)",
+      },
+      {
+        id: "ag-2",
+        paciente_id: "p-ana",
+        paciente_nome: "Ana Beatriz",
+        data: hojeIso,
+        hora_inicio: "14:00",
+        duracao_min: 50,
+        observacao: null,
+        criado_em: `${hojeIso}T09:05:00Z`,
+        atualizado_em: `${hojeIso}T09:05:00Z`,
+        conflito: true,
+        conflito_descricao: "Conflito de horário com João da Conceição (14:00)",
+      },
+    ]);
+    const criarSessaoSpy = vi.spyOn(api, "sessaoCriar").mockResolvedValue({
+      id: "s-hoje",
+      paciente_id: "p-joao",
+      data: hojeIso,
+      resumo: "Sessão realizada conforme agendamento de hoje.",
+      criado_em: `${hojeIso}T15:00:00Z`,
+      atualizado_em: `${hojeIso}T15:00:00Z`,
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Inicio />
+      </MemoryRouter>,
+    );
+
+    const secaoHoje = await screen.findByTestId("secao-sessoes-hoje");
+    expect(secaoHoje).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("sessao-hoje-ag-1")).toHaveTextContent("14:00");
+      expect(screen.getByTestId("sessao-hoje-ag-1")).toHaveTextContent(
+        "João da Conceição",
+      );
+      expect(screen.getByTestId("sessao-hoje-ag-2")).toHaveTextContent(
+        "Ana Beatriz",
+      );
+    });
+
+    expect(screen.getByTestId("conflito-sessao-hoje-ag-1")).toHaveTextContent(
+      "Conflito de horário",
+    );
+
+    // Clicar em "Registrar sessão" em um agendamento de hoje abre o modal T08 (RN76)
+    fireEvent.click(screen.getByTestId("registrar-sessao-hoje-ag-1"));
+    expect(
+      await screen.findByRole("dialog", { name: "Nova sessão" }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Sessão realizada conforme agendamento de hoje." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(criarSessaoSpy).toHaveBeenCalledWith({
+        paciente_id: "p-joao",
+        data: hojeIso,
+        resumo: "Sessão realizada conforme agendamento de hoje.",
+      });
+    });
   });
 });

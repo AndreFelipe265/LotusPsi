@@ -248,4 +248,80 @@ describe("Tela T11 — Agenda (F4.5-T3 — RN70–RN76)", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it("oferece 'Registrar sessão' em agendamento passado abrindo o modal T08 com a data preenchida, mantendo o agendamento independente (F4.5-T4 — RN76)", async () => {
+    const agendamentoPassado: Agendamento = {
+      id: "ag-passado",
+      paciente_id: "p-joao",
+      paciente_nome: "João da Conceição",
+      data: "2026-11-02",
+      hora_inicio: "10:00",
+      duracao_min: 50,
+      observacao: "Atendimento de segunda-feira",
+      criado_em: "2026-11-01T10:00:00Z",
+      atualizado_em: "2026-11-01T10:00:00Z",
+      conflito: false,
+      conflito_descricao: null,
+    };
+
+    mockInvoke.mockImplementation((cmd: string, args: unknown) => {
+      if (cmd === "pacientes_listar") return Promise.resolve(PACIENTES_ATIVOS);
+      if (cmd === "agendamentos_listar") {
+        return Promise.resolve([agendamentoPassado]);
+      }
+      if (cmd === "sessao_criar") {
+        const { dados } = args as {
+          dados: { paciente_id: string; data: string; resumo: string };
+        };
+        return Promise.resolve({
+          id: "s-registrada",
+          paciente_id: dados.paciente_id,
+          data: dados.data,
+          resumo: dados.resumo,
+          criado_em: "2026-11-04T12:00:00Z",
+          atualizado_em: "2026-11-04T12:00:00Z",
+        });
+      }
+      return Promise.resolve(null);
+    });
+
+    render(
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Agenda dataHojeIso="2026-11-04" />
+      </MemoryRouter>,
+    );
+
+    const botaoRegistrar = await screen.findByTestId(
+      "registrar-sessao-agendamento-ag-passado",
+    );
+    fireEvent.click(botaoRegistrar);
+
+    // Abre o modal T08 com a data do agendamento (02/11/2026) já preenchida (RN76)
+    expect(
+      await screen.findByRole("dialog", { name: "Nova sessão" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Data da sessão/i)).toHaveValue("02/11/2026");
+
+    fireEvent.change(screen.getByLabelText(/Resumo da sessão/i), {
+      target: { value: "Sessão registrada a partir do agendamento passado." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar sessão" }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith("sessao_criar", {
+        dados: {
+          paciente_id: "p-joao",
+          data: "2026-11-02",
+          resumo: "Sessão registrada a partir do agendamento passado.",
+        },
+      });
+    });
+
+    // O agendamento continua presente de forma independente (RN76)
+    expect(
+      screen.getByTestId("card-agendamento-ag-passado"),
+    ).toBeInTheDocument();
+  });
 });

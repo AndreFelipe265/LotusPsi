@@ -45,10 +45,25 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
     mockInvoke.mockReset();
   });
 
-  it("exibe cabeçalho, dados cadastrais, total de sessões, última sessão e botão Nova sessão (RN19, RN27)", async () => {
+  it("exibe cabeçalho, dados cadastrais, total de sessões, última sessão, próximo agendamento e botão Nova sessão (RN19, RN27, RN77)", async () => {
     mockInvoke.mockImplementation((cmd: string) => {
       if (cmd === "paciente_obter") {
         return Promise.resolve(PACIENTE_BASE);
+      }
+      if (cmd === "agendamento_proximo_paciente") {
+        return Promise.resolve({
+          id: "ag-prox",
+          paciente_id: "p-joao",
+          paciente_nome: "João da Conceição",
+          data: "2026-11-05",
+          hora_inicio: "15:30",
+          duracao_min: 50,
+          observacao: null,
+          criado_em: "2026-11-02T10:00:00Z",
+          atualizado_em: "2026-11-02T10:00:00Z",
+          conflito: false,
+          conflito_descricao: null,
+        });
       }
       return Promise.resolve(null);
     });
@@ -81,6 +96,11 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
     const secaoSessoes = screen.getByTestId("secao-historico-sessoes");
     expect(secaoSessoes).toHaveTextContent("Total de sessões: 3");
     expect(secaoSessoes).toHaveTextContent("Última sessão: 20/10/2026");
+
+    // Próximo agendamento do paciente no cabeçalho (RN77)
+    expect(
+      screen.getByTestId("proximo-agendamento-paciente"),
+    ).toHaveTextContent("Próximo agendamento: 05/11/2026 às 15:30");
 
     // Mais opções começa recolhido (RN18)
     expect(screen.queryByTestId("secao-mais-opcoes")).not.toBeInTheDocument();
