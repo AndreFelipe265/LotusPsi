@@ -1,4 +1,4 @@
-# Dependências e builds
+# Dependências e compilação
 .cargo/
 node_modules/
 app/node_modules/
@@ -6,7 +6,7 @@ app/dist/
 app/src-tauri/target/
 app/src-tauri/gen/
 
-# Sistema operacional / editor
+# Sistema operacional e editores
 .DS_Store
 .directory
 Thumbs.db
@@ -15,7 +15,19 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Ambiente e logs
+# Arquivos de ambiente e segredos locais
 .env
 .env.*
+!.env.example
 *.log
+
+# Arquivos de dados e backups (bloqueia vazamento acidental de dados de pacientes)
+*.sqlite
+*.sqlite3
+*.db
+*.lcbackup
+*.xlsx
+*.xls
+*.parquet
+*.csv
+!docs/exemplos/*.csv
