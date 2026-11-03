@@ -1,3 +1,4 @@
+pub mod agendamentos;
 pub mod aniversarios;
 pub mod auth;
 pub mod backup;

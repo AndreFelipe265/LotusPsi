@@ -1,9 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
+  Agendamento,
+  DadosAgendamentoInput,
   DadosPacienteInput,
   DadosSessaoAtualizarInput,
   DadosSessaoCriarInput,
   ErroApi,
+  FiltroAgendamentos,
   FiltroPacientes,
   Paciente,
   PacienteResumo,
@@ -174,4 +177,60 @@ export function configObter(chave: string): Promise<string | null> {
 
 export function configDefinir(chave: string, valor: string): Promise<void> {
   return invocarComando<void>("config_definir", { chave, valor });
+}
+
+export function agendamentosListar(
+  filtro?: FiltroAgendamentos,
+): Promise<Agendamento[]> {
+  return invocarComando<Agendamento[]>("agendamentos_listar", {
+    dataInicio: filtro?.data_inicio,
+    data_inicio: filtro?.data_inicio,
+    dataFim: filtro?.data_fim,
+    data_fim: filtro?.data_fim,
+    pacienteId: filtro?.paciente_id,
+    paciente_id: filtro?.paciente_id,
+  });
+}
+
+export function agendamentosVerificarConflito(params: {
+  data: string;
+  hora_inicio: string;
+  duracao_min?: number | null;
+  ignorar_id?: string | null;
+}): Promise<Agendamento[]> {
+  return invocarComando<Agendamento[]>("agendamentos_verificar_conflito", {
+    data: params.data,
+    horaInicio: params.hora_inicio,
+    hora_inicio: params.hora_inicio,
+    duracaoMin: params.duracao_min ?? 50,
+    duracao_min: params.duracao_min ?? 50,
+    ignorarId: params.ignorar_id ?? null,
+    ignorar_id: params.ignorar_id ?? null,
+  });
+}
+
+export function agendamentoCriar(
+  dados: DadosAgendamentoInput,
+): Promise<Agendamento> {
+  return invocarComando<Agendamento>("agendamento_criar", { dados });
+}
+
+export function agendamentoAtualizar(
+  id: string,
+  dados: DadosAgendamentoInput,
+): Promise<Agendamento> {
+  return invocarComando<Agendamento>("agendamento_atualizar", { id, dados });
+}
+
+export function agendamentoExcluir(id: string): Promise<void> {
+  return invocarComando<void>("agendamento_excluir", { id });
+}
+
+export function agendamentoProximoPaciente(
+  pacienteId: string,
+): Promise<Agendamento | null> {
+  return invocarComando<Agendamento | null>("agendamento_proximo_paciente", {
+    pacienteId,
+    paciente_id: pacienteId,
+  });
 }

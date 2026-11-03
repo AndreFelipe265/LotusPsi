@@ -108,3 +108,31 @@ export interface DadosSessaoAtualizarInput {
   data: string;
   resumo: string;
 }
+
+export interface Agendamento {
+  id: string;
+  paciente_id: string;
+  paciente_nome: string;
+  data: string;
+  hora_inicio: string;
+  duracao_min: number;
+  observacao?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+  conflito: boolean;
+  conflito_descricao?: string | null;
+}
+
+export interface DadosAgendamentoInput {
+  paciente_id: string;
+  data: string;
+  hora_inicio: string;
+  duracao_min?: number | null;
+  observacao?: string | null;
+}
+
+export interface FiltroAgendamentos {
+  data_inicio?: string;
+  data_fim?: string;
+  paciente_id?: string;
+}

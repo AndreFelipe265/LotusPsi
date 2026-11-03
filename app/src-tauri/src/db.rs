@@ -14,6 +14,9 @@ use crate::state::Key;
 /// SQL da migração inicial (Seção 6 da Fonte da Verdade).
 pub const MIGRACAO_001_INICIAL: &str = include_str!("../migrations/001_inicial.sql");
 
+/// SQL da migração 002: tabela `agendamentos` (F4.5-T2 — Seção 6 da Fonte da Verdade).
+pub const MIGRACAO_002_AGENDAMENTOS: &str = include_str!("../migrations/002_agendamentos.sql");
+
 /// Nome do arquivo do banco de dados SQLCipher na pasta de dados.
 pub const NOME_ARQUIVO_BANCO: &str = "pacientes.db";
 
@@ -83,6 +86,23 @@ pub fn aplicar_migracoes(conn: &mut Connection) -> Resultado<()> {
         tx.commit()?;
     }
 
+    let versao_2_aplicada: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE versao = 2);",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if !versao_2_aplicada {
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRACAO_002_AGENDAMENTOS)?;
+        let agora = Local::now().to_rfc3339();
+        tx.execute(
+            "INSERT INTO schema_migrations (versao, aplicado_em) VALUES (2, ?1);",
+            [&agora],
+        )?;
+        tx.commit()?;
+    }
+
     Ok(())
 }
 
@@ -131,6 +151,7 @@ mod tests {
             "sessoes",
             "categorias_documento",
             "documentos",
+            "agendamentos",
             "schema_migrations",
         ] {
             let existe: bool = conn
@@ -143,14 +164,19 @@ mod tests {
             assert!(existe, "Tabela {} deveria existir", tabela);
         }
 
+        let qtd_inicial: i64 = conn
+            .query_row("SELECT count(*) FROM schema_migrations;", [], |r| r.get(0))
+            .expect("consultar total de migrações");
+        assert!(qtd_inicial >= 2);
+
         drop(conn);
 
-        // Reabrir com a mesma DEK deve funcionar e manter apenas 1 registro na schema_migrations
+        // Reabrir com a mesma DEK deve funcionar e manter a mesma quantidade de migrações
         let conn2 = abrir_banco(&dir, &dek).expect("reabrir banco com mesma DEK");
         let qtd_migracoes_2: i64 = conn2
             .query_row("SELECT count(*) FROM schema_migrations;", [], |r| r.get(0))
             .expect("consultar schema_migrations");
-        assert_eq!(qtd_migracoes_2, 1);
+        assert_eq!(qtd_migracoes_2, qtd_inicial);
         drop(conn2);
 
         let _ = fs::remove_dir_all(&dir);

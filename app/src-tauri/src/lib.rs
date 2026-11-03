@@ -80,6 +80,12 @@ pub fn run() {
             commands::config::boas_vindas_obter,
             commands::config::config_obter,
             commands::config::config_definir,
+            commands::agendamentos::agendamentos_listar,
+            commands::agendamentos::agendamentos_verificar_conflito,
+            commands::agendamentos::agendamento_criar,
+            commands::agendamentos::agendamento_atualizar,
+            commands::agendamentos::agendamento_excluir,
+            commands::agendamentos::agendamento_proximo_paciente,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o aplicativo Tauri");
