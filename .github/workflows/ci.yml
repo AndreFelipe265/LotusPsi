@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  higiene:
+    name: Higiene do Repositório
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Nenhum arquivo .env versionado
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$|(^|/)\.env\.' | grep -v '\.env\.example$'; then
+            echo "::error::Arquivo de ambiente versionado. Segredos ficam em .env, que está no .gitignore."
+            exit 1
+          fi
+          echo "OK — nenhum .env versionado."
+
+      - name: Nenhum arquivo de dados ou backup versionado
+        run: |
+          if git ls-files | grep -Ei '\.(sqlite|db|lcbackup|parquet|xlsx|xls)$' || git ls-files | grep -Ei '\.csv$' | grep -v '^docs/exemplos/'; then
+            echo "::error::Arquivo de dados ou backup versionado fora de docs/exemplos/."
+            exit 1
+          fi
+          echo "OK — nenhum arquivo de dados sensíveis versionado."
+
+      - name: Nenhum segredo aparente no código
+        run: |
+          if git grep -nEi "(api[_-]?key|secret|token|password|passwd|senha)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9_/+.-]{16,}['\"]" -- . ':!.github/workflows/*' ':!*.example'; then
+            echo "::error::Possível segredo literal detectado no código."
+            exit 1
+          fi
+          echo "OK — nenhum segredo aparente."
+
+      - name: Nenhum arquivo excessivamente grande
+        run: |
+          grandes=""
+          while IFS= read -r -d '' f; do
+            limite=5242880 # 5 MB
+            if [[ "$f" =~ \.(pdf|docx)$ ]]; then
+              limite=26214400 # 25 MB para documentação formatada
+            fi
+            if [ -f "$f" ] && [ "$(wc -c < "$f")" -gt "$limite" ]; then
+              grandes="$grandes $f"
+            fi
+          done < <(git ls-files -z)
+          if [ -n "$grandes" ]; then
+            echo "::error::Arquivos excedendo o limite de tamanho: $grandes"
+            exit 1
+          fi
+          echo "OK — tamanho dos arquivos sob controle."
+
+      - name: Documentação essencial presente
+        run: |
+          for f in README.md CONTRIBUTING.md AGENTS.md Planejamento/01_FONTE_DA_VERDADE.md; do
+            test -f "$f" || { echo "::error::Documento obrigatório ausente: $f"; exit 1; }
+          done
+          echo "OK — documentação base presente."
+
+  frontend:
+    name: Frontend (React + TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: app
+        run: npm ci
+
+      - name: Linter (ESLint)
+        working-directory: app
+        run: npm run lint
+
+      - name: Testes Unitários (Vitest)
+        working-directory: app
+        run: npm test -- --run
+
+      - name: Build do Frontend (Vite)
+        working-directory: app
+        run: npm run build
+
+  backend:
+    name: Backend (Rust + Tauri)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar dependências nativas Linux (GTK e WebKit)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri -> target
+
+      - name: Formatação (rustfmt)
+        working-directory: app/src-tauri
+        run: cargo fmt --check
+
+      - name: Testes unitários do Rust (Cargo)
+        working-directory: app/src-tauri
+        run: cargo test
