@@ -86,6 +86,16 @@ flowchart LR
 
 **Aceite:** registrar 3 sessões, editar 1 e excluir 1; o bloqueio de 30 min durante a digitação não perde o texto.
 
+## F4.5 — Pedidos de 02/11/2026: boas-vindas e agenda (RN60–RN62, RN70–RN77, T04, T07, T11)
+> Executar **logo após a F4**, antes da F5. A anamnese entrou na F6 porque reaproveita a criptografia de arquivos (F6-T1).
+
+- [x] **F4.5-T1** Boas-vindas rotativas: lista de mensagens (com "Eu te amo, mãe! ❤️"), sorteio sem repetir a anterior, exibição no painel (RN60–RN62). Testes. (`9ac1e59`)
+- [x] **F4.5-T2** Agenda — backend: migração `agendamentos`, CRUD, consulta por intervalo, detecção de conflito (RN70–RN74). Testes. (`ff5e8a5`)
+- [x] **F4.5-T3** Agenda — tela T11 (semana/mês) e item "Agenda" no menu. (`7b45418`)
+- [x] **F4.5-T4** Integrações: "Sessões de hoje" no painel, próximo agendamento no perfil, "Registrar sessão" a partir do agendamento (RN75–RN77). (`fa14156`)
+
+**Aceite:** logar 3 vezes e ver mensagens diferentes consecutivas; agendar 2 sessões no mesmo horário (aviso de conflito), vê-las na semana e em "Sessões de hoje".
+
 ## F5 — Aniversariantes (RN30–RN34)
 - [ ] **F5-T1** Comando `aniversariantes` (hoje + 7 dias, inclui inativos, regra do 29/02). Testes.
 - [ ] **F5-T2** Card no painel com o botão "Enviar parabéns no WhatsApp" (`wa.me`, só com clique).
@@ -98,11 +108,13 @@ flowchart LR
 - [ ] **F6-T2** Categorias: seed (Modelos, Administrativo, Outros) e CRUD (RN41).
 - [ ] **F6-T3** Comandos enviar/listar/baixar/abrir/atualizar/excluir.
 - [ ] **F6-T4** Tela T09: abas de categoria, busca, enviar (botão + arrastar e soltar) e ações por arquivo.
+- [ ] **F6-T5** Anamnese — backend: migração `anamneses`, comandos anexar/listar/abrir/baixar/excluir reaproveitando `files.rs` (RN65–RN68). Testes.
+- [ ] **F6-T6** Anamnese — interface: seção no perfil T07 entre o nome e o histórico de sessões (RN65–RN69).
 
-**Aceite:** enviar PDF e DOCX, baixar idêntico (sha256 igual), arquivo em disco ilegível, rejeitar `.exe` renomeado para `.pdf`.
+**Aceite:** enviar PDF e DOCX, baixar idêntico (sha256 igual), arquivo em disco ilegível, rejeitar `.exe` renomeado para `.pdf`; anexar e abrir um PDF de anamnese no perfil do paciente.
 
 ## F7 — Backup e restauração (RN50–RN55)
-- [ ] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL) + docs + vault → `.lcbackup` cifrado, com verificação pós-gravação.
+- [ ] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL, inclui agendamentos) + docs + anexos de anamnese (RN56) + vault → `.lcbackup` cifrado, com verificação pós-gravação.
 - [ ] **F7-T2** Inspecionar e restaurar, com cópia automática prévia dos dados atuais.
 - [ ] **F7-T3** Interface: botão no painel e em Configurações, data do último backup e lembrete após 7 dias.
 - [ ] **F7-T4** Escrever um guia de 1 página para a usuária: "Como fazer backup e restaurar" (`docs/guia-backup.md` → PDF).
@@ -122,6 +134,6 @@ flowchart LR
 **Aceite (Entrega MVP):** todos os critérios das fases F0–F7 OK e a usuária completa sozinha o fluxo "cadastrar paciente → registrar sessão → enviar documento → backup".
 
 ## F9 — Fase 2 (após o MVP estabilizar)
-- [ ] **F9-T1** Levantar detalhes do financeiro e da agenda com a usuária. Atualizar a Fonte da Verdade **antes** de codar.
+- [ ] **F9-T1** Levantar detalhes do financeiro e da grade semanal com a usuária. Atualizar a Fonte da Verdade **antes** de codar.
 - [ ] **F9-T2** Financeiro: entradas/gastos, vínculo opcional ao paciente e resumo mensal.
 - [ ] **F9-T3** Grade semanal de horários fixos.

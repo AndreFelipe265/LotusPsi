@@ -7,7 +7,7 @@
 > - Se algo não estiver definido aqui, **não invente**: pergunte ao desenvolvedor (Felipe) e registre a decisão na seção 12 (Registro de Decisões).
 > - Só altere este arquivo quando o desenvolvedor aprovar a mudança, e sempre registre a alteração na seção 12.
 
-**Versão:** 1.0 — 01/11/2026
+**Versão:** 1.1 — 02/11/2026
 
 ---
 
@@ -47,13 +47,17 @@
 6. Backup criptografado feito pelo botão, e restauração.
 7. Configurações: trocar senha, backup/restauração e informações de segurança.
 
+### 2.1.1 Pedidos de 02/11/2026 (feedback do instalador provisório — boas-vindas e agenda na fase F4.5, logo após a F4; anamnese na F6)
+8. **Mensagens de boas-vindas personalizadas** que mudam a cada login, incluindo *"Eu te amo, mãe"* (RN60–RN62).
+9. **Anamnese anexada ao paciente:** seção no perfil, entre o cabeçalho com o nome e o histórico de sessões (RN65–RN69).
+10. **Agenda (calendário de sessões):** registrar o dia e o horário de cada sessão marcada (RN70–RN77).
+
 ### 2.2 Fase 2 — pedida pela usuária, construir depois do MVP
 - **Financeiro:** entradas (pagamentos de sessões) e gastos do consultório, com resumo mensal.
-- **Grade de horários semanais:** horários fixos de cada paciente.
+- **Grade de horários semanais:** horários fixos de cada paciente (pode reaproveitar a Agenda da F4.5).
 
 ### 2.3 Fora do escopo (NÃO implementar)
-- Ficha de anamnese, tanto o preenchimento quanto o anexo ao paciente.
-  - Obs.: a usuária citou a anamnese no áudio, mas o escopo a exclui. Ela pode guardar o *modelo* da ficha em Documentos.
+- **Preenchimento** da ficha de anamnese dentro do sistema (formulário). Apenas o **anexo do arquivo** ao paciente é permitido (RN65).
 - Múltiplos usuários, compartilhamento, sincronização ou acesso pela internet.
 - Exportar o histórico em PDF (ela respondeu "raramente"; reavaliar no futuro).
 - Envio automático de mensagens. O WhatsApp só será **aberto** pela usuária com um clique.
@@ -107,7 +111,7 @@
 **Princípios de interface:**
 - Texto base de no mínimo 16px e botões grandes com rótulos em texto (não apenas ícones).
 - No máximo 2 cliques para chegar a qualquer função principal.
-- Menu lateral fixo: **Início · Pacientes · Documentos · Configurações** (+ Financeiro e Agenda na Fase 2).
+- Menu lateral fixo: **Início · Pacientes · Agenda · Documentos · Configurações** (+ Financeiro na Fase 2).
 - Toda ação destrutiva pede confirmação, mostrando claramente o que será apagado.
 - Mensagens amigáveis, sem jargão técnico.
 - Contraste mínimo WCAG AA. Texto branco só sobre `malva` ou cores mais escuras.
@@ -154,7 +158,7 @@
   - Exige digitar o nome do paciente para confirmar.
   - Apaga também as sessões. Sugira inativar em vez de excluir.
   - Aviso: guarda mínima de 5 anos, conforme a Resolução CFP 01/2009.
-- **RN19** — O perfil reúne, em uma única tela: dados cadastrais (editáveis) + histórico de sessões + botão "Nova sessão".
+- **RN19** — O perfil reúne, em uma única tela, nesta ordem: cabeçalho com o nome → **Anamnese** (RN65) → histórico de sessões + botão "Nova sessão" → dados cadastrais (editáveis).
 
 ### 5.3 Sessões
 - **RN20** — Campos: **data** (obrigatória, padrão hoje) e **resumo** (obrigatório).
@@ -210,6 +214,34 @@
   - Confirma que os dados atuais serão substituídos.
   - Cria antes, automaticamente, uma cópia de segurança dos dados atuais.
 - **RN55** — Depois de gerar o backup, validar que o arquivo abre (verificação de integridade).
+- **RN56** — O backup inclui também os anexos de anamnese (RN67) e os agendamentos (RN70).
+
+### 5.7 Mensagens de boas-vindas
+- **RN60** — A cada login bem-sucedido, a saudação do painel (T04) mostra uma mensagem escolhida de uma lista, diferente da exibida no login anterior.
+- **RN61** — A lista inicial (embutida no app) inclui obrigatoriamente **"Eu te amo, mãe! ❤️"**. Demais mensagens iniciais:
+  - *"Bom te ver de novo, Louriedna!"*
+  - *"Que seu dia seja leve e cheio de bons encontros."*
+  - *"Você faz a diferença na vida de muita gente."*
+  - *"Respire fundo: hoje vai ser um bom dia."*
+  - *"Obrigado por cuidar de tantas pessoas com tanto carinho."*
+- **RN62** — A mensagem é escolhida aleatoriamente, sem repetir a anterior (o índice da última fica em `config`). Saudação por horário (Bom dia/Boa tarde/Boa noite) continua acima da mensagem. A lista é fixa no código no MVP (sem edição em Configurações).
+
+### 5.8 Anamnese do paciente
+- **RN65** — O perfil do paciente (T07) tem a seção **"Anamnese"** entre o cabeçalho com o nome e o histórico de sessões.
+- **RN66** — Permite anexar um ou mais arquivos de anamnese por paciente (ex.: ficha escaneada ou preenchida no Word). Formatos e tamanho seguem RN42/RN43.
+- **RN67** — Os arquivos são guardados **criptografados**, como em RN45, vinculados ao `paciente_id`. Excluir o paciente (RN18) apaga também seus anexos.
+- **RN68** — Ações: Anexar (botão + arrastar e soltar), Abrir, Baixar, Excluir (com confirmação). Mostra nome, data de envio e tamanho.
+- **RN69** — Sem anexo, a seção mostra *"Nenhuma anamnese anexada"* e o botão "Anexar anamnese".
+
+### 5.9 Agenda (calendário de sessões)
+- **RN70** — Item **"Agenda"** no menu lateral. Cada agendamento tem: **paciente** (obrigatório), **data** (obrigatória), **horário de início** (obrigatório, HH:MM), duração (padrão 50 min) e observação curta opcional (≤ 200 caracteres).
+- **RN71** — Visualizações: **semana** (padrão) e **mês**, com botões "Hoje", "Anterior" e "Próximo".
+- **RN72** — Datas futuras e passadas são permitidas. Criar clicando em um horário vazio ou no botão "Novo agendamento".
+- **RN73** — Avisar (sem bloquear) quando houver conflito de horário com outro agendamento.
+- **RN74** — Editar, remarcar e excluir (com confirmação) agendamentos.
+- **RN75** — O painel inicial (T04) mostra **"Sessões de hoje"** com horário e nome do paciente.
+- **RN76** — Ao clicar em um agendamento passado, oferecer "Registrar sessão", abrindo o modal T08 com a data preenchida. Agendamento e registro de sessão são independentes.
+- **RN77** — O perfil do paciente mostra o próximo agendamento dele. Sem lembretes/notificações externas e sem recorrência no MVP (a recorrência é a grade semanal da Fase 2).
 
 ---
 
@@ -278,6 +310,31 @@ CREATE TABLE documentos (
   atualizado_em TEXT NOT NULL
 );
 
+-- F6: anexos de anamnese (arquivo cifrado em docs/<id>.bin)
+CREATE TABLE anamneses (
+  id TEXT PRIMARY KEY,
+  paciente_id TEXT NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  nome_original TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  tamanho_bytes INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,
+  enviado_em TEXT NOT NULL
+);
+CREATE INDEX idx_anamneses_paciente ON anamneses(paciente_id);
+
+-- F4.5: agenda
+CREATE TABLE agendamentos (
+  id TEXT PRIMARY KEY,
+  paciente_id TEXT NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  data TEXT NOT NULL,                 -- ISO AAAA-MM-DD
+  hora_inicio TEXT NOT NULL,          -- HH:MM
+  duracao_min INTEGER NOT NULL DEFAULT 50,
+  observacao TEXT CHECK (length(observacao) <= 200),
+  criado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_agendamentos_data ON agendamentos(data, hora_inicio);
+
 CREATE TABLE schema_migrations (versao INTEGER PRIMARY KEY, aplicado_em TEXT NOT NULL);
 ```
 
@@ -334,12 +391,13 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 | T01 | Primeiro acesso | Boas-vindas → criar senha → exibir/imprimir chave de recuperação → confirmar |
 | T02 | Login / Bloqueado | Logo, campo de senha, "Entrar", "Esqueci a senha", aviso de bloqueio temporário |
 | T03 | Recuperar acesso | Chave de recuperação → nova senha |
-| T04 | Início (painel) | Saudação; aniversariantes do dia + próximos 7 dias; atalhos (Novo paciente, Registrar sessão, Buscar paciente, Documentos); total de ativos; último backup + botão |
+| T04 | Início (painel) | Saudação + mensagem de boas-vindas rotativa (RN60); sessões de hoje (RN75); aniversariantes do dia + próximos 7 dias; atalhos (Novo paciente, Registrar sessão, Buscar paciente, Documentos); total de ativos; último backup + botão |
 | T05 | Pacientes (lista) | Busca, filtro de status, botão "Novo paciente"; colunas: nome, idade, telefone, última sessão |
 | T06 | Paciente (form) | Criar/editar, com campos agrupados: Dados pessoais · Contato · Família/Responsável · Atendimento · Observações |
-| T07 | Paciente (perfil) | Cabeçalho (nome, idade, status, contato); "Nova sessão" em destaque; histórico compacto; abas/seção de dados cadastrais; Mais opções (inativar/reativar/excluir) |
+| T07 | Paciente (perfil) | Cabeçalho (nome, idade, status, contato, próximo agendamento); **seção Anamnese** (RN65); "Nova sessão" em destaque; histórico compacto; abas/seção de dados cadastrais; Mais opções (inativar/reativar/excluir) |
 | T08 | Sessão (modal) | Data + resumo com contador 0/600; salvar/cancelar |
 | T09 | Documentos | Categorias (abas ou lateral), busca, botão "Enviar documento" (também arrastar e soltar), lista com ações |
+| T11 | Agenda | Visão semana/mês, "Hoje", navegação, "Novo agendamento"; modal com paciente, data, horário, duração, observação (RN70–RN77) |
 | T10 | Configurações | Trocar senha · Backup/Restaurar · Mensagem de aniversário · Gerenciar categorias · Sobre/segurança |
 
 "Registrar sessão" no painel abre uma busca rápida de paciente e depois o modal T08.
@@ -385,3 +443,6 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 | 01/11/2026 | Financeiro e agenda ficam para a Fase 2 | Campo livre 7.2 + prioridade 7.1 |
 | 01/11/2026 | Stack Tauri 2 + React + SQLCipher | Offline, leve, segura, instalador único |
 | 01/11/2026 | Resumo com limite de 600 caracteres | Tradução de "4–5 linhas" |
+| 02/11/2026 | Mensagens de boas-vindas rotativas a cada login, incluindo "Eu te amo, mãe" (RN60–RN62) | Pedido do desenvolvedor |
+| 02/11/2026 | Anexo de anamnese ao paciente entra no escopo (só arquivo, sem formulário), seção entre o nome e o histórico (RN65–RN69) | Pedido da usuária; revoga a exclusão anterior. Fica na F6 (reaproveita a criptografia de arquivos) |
+| 02/11/2026 | Agenda (data + horário das sessões) antecipada da Fase 2 para a F4.5 (RN70–RN77) | Pedido da usuária |
