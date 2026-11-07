@@ -11,7 +11,7 @@ jobs:
     name: Higiene do Repositório
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Nenhum arquivo .env versionado
         run: |
@@ -66,7 +66,7 @@ jobs:
     name: Frontend (React + TypeScript)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -95,7 +95,7 @@ jobs:
     name: Backend (Rust + Tauri)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar dependências nativas Linux (GTK e WebKit)
         run: |
