@@ -251,10 +251,7 @@ impl<W: Write> EscritorStreamCifrado<W> {
         self.inner.write_all(&ciphertext)?;
 
         if !eh_ultimo {
-            self.indice_bloco = self
-                .indice_bloco
-                .checked_add(1)
-                .ok_or(Erro::Criptografia)?;
+            self.indice_bloco = self.indice_bloco.checked_add(1).ok_or(Erro::Criptografia)?;
         }
         Ok(())
     }
@@ -352,10 +349,7 @@ impl<R: Read> LeitorStreamDecifrado<R> {
             },
         ) {
             self.buffer = plaintext;
-            self.indice_bloco = self
-                .indice_bloco
-                .checked_add(1)
-                .ok_or(Erro::Criptografia)?;
+            self.indice_bloco = self.indice_bloco.checked_add(1).ok_or(Erro::Criptografia)?;
             return Ok(true);
         }
 
@@ -437,15 +431,12 @@ pub fn executar_checkpoint_wal(conn: &Connection) -> Resultado<()> {
 fn coletar_estatisticas_e_ids_arquivos(
     conn: &Connection,
 ) -> Resultado<(usize, usize, usize, usize, usize, Vec<String>)> {
-    let n_pacientes: i64 =
-        conn.query_row("SELECT COUNT(*) FROM pacientes;", [], |r| r.get(0))?;
+    let n_pacientes: i64 = conn.query_row("SELECT COUNT(*) FROM pacientes;", [], |r| r.get(0))?;
     let n_sessoes: i64 = conn.query_row("SELECT COUNT(*) FROM sessoes;", [], |r| r.get(0))?;
     let n_agendamentos: i64 =
         conn.query_row("SELECT COUNT(*) FROM agendamentos;", [], |r| r.get(0))?;
-    let n_documentos: i64 =
-        conn.query_row("SELECT COUNT(*) FROM documentos;", [], |r| r.get(0))?;
-    let n_anamneses: i64 =
-        conn.query_row("SELECT COUNT(*) FROM anamneses;", [], |r| r.get(0))?;
+    let n_documentos: i64 = conn.query_row("SELECT COUNT(*) FROM documentos;", [], |r| r.get(0))?;
+    let n_anamneses: i64 = conn.query_row("SELECT COUNT(*) FROM anamneses;", [], |r| r.get(0))?;
 
     let mut ids = Vec::new();
     {
@@ -527,9 +518,9 @@ fn listar_arquivos_docs_para_backup(
 /// exatamente no início do payload cifrado.
 pub fn ler_cabecalho_backup_de_leitor<R: Read>(leitor: &mut R) -> Resultado<CabecalhoBackup> {
     let mut magic = [0u8; 8];
-    leitor
-        .read_exact(&mut magic)
-        .map_err(|_| Erro::Validacao("O arquivo selecionado não é um backup válido (.lcbackup).".to_string()))?;
+    leitor.read_exact(&mut magic).map_err(|_| {
+        Erro::Validacao("O arquivo selecionado não é um backup válido (.lcbackup).".to_string())
+    })?;
 
     if &magic != MAGIC_BACKUP {
         return Err(Erro::Validacao(
@@ -878,7 +869,10 @@ pub fn desembrulhar_dek_do_vault_backup(vault: &Vault, segredo_ou_chave: &str) -
 
 /// Inspeciona um arquivo `.lcbackup` validando a senha ou a chave de recuperação (RN52, RN54)
 /// e a integridade completa do arquivo, retornando a data do backup e as contagens de registros.
-pub fn inspecionar_backup(caminho_backup: &Path, segredo_ou_chave: &str) -> Resultado<InspecaoBackup> {
+pub fn inspecionar_backup(
+    caminho_backup: &Path,
+    segredo_ou_chave: &str,
+) -> Resultado<InspecaoBackup> {
     if !caminho_backup.exists() || !caminho_backup.is_file() {
         return Err(Erro::Validacao(
             "O arquivo de backup selecionado não foi encontrado.".to_string(),
@@ -1039,8 +1033,7 @@ pub fn restaurar_backup(
     verificar_integridade_backup(caminho_backup, &dek_backup)?;
 
     // 3. Cria cópia automática prévia dos dados atuais, se existirem (RN54)
-    let copia_seguranca =
-        criar_copia_seguranca_automatica_previa(data_dir, conn_atual, dek_atual)?;
+    let copia_seguranca = criar_copia_seguranca_automatica_previa(data_dir, conn_atual, dek_atual)?;
 
     // 4. Extrai tudo em uma pasta de staging isolada dentro de `data_dir`
     fs::create_dir_all(data_dir)?;
@@ -1151,7 +1144,8 @@ mod tests {
     use crate::commands::categorias::executar_categorias_listar;
     use crate::commands::documentos::executar_documento_enviar;
     use crate::commands::financeiro::{
-        executar_financeiro_criar, executar_financeiro_resumo_mensal, DadosLancamentoFinanceiroInput,
+        executar_financeiro_criar, executar_financeiro_resumo_mensal,
+        DadosLancamentoFinanceiroInput,
     };
     use crate::commands::horarios_semanais::{
         executar_horario_semanal_criar, executar_horarios_semanais_aplicar_semana,
@@ -1189,7 +1183,8 @@ mod tests {
     }
 
     #[test]
-    fn empacota_banco_com_checkpoint_wal_agendamentos_documentos_anamneses_e_vault_e_verifica_pos_gravacao() {
+    fn empacota_banco_com_checkpoint_wal_agendamentos_documentos_anamneses_e_vault_e_verifica_pos_gravacao(
+    ) {
         let dir = pasta_teste();
         let state = AppState::new(dir.clone());
 
@@ -1252,8 +1247,11 @@ mod tests {
         fs::create_dir_all(&pasta_origens).expect("criar pasta origens");
 
         let caminho_doc_pdf = pasta_origens.join("modelo_contrato.pdf");
-        fs::write(&caminho_doc_pdf, b"%PDF-1.7\nContrato modelo de teste\n%%EOF")
-            .expect("escrever pdf doc");
+        fs::write(
+            &caminho_doc_pdf,
+            b"%PDF-1.7\nContrato modelo de teste\n%%EOF",
+        )
+        .expect("escrever pdf doc");
 
         let caminho_anamnese_pdf = pasta_origens.join("ficha_anamnese_maria.pdf");
         fs::write(
@@ -1474,7 +1472,8 @@ mod tests {
         assert_eq!(resumo_rest.n_pacientes, 1);
 
         let state_restaurado = AppState::new(dir_restaurado.clone());
-        let conn_rest = abrir_banco(&dir_restaurado, &dek_restaurada).expect("abrir banco restaurado");
+        let conn_rest =
+            abrir_banco(&dir_restaurado, &dek_restaurada).expect("abrir banco restaurado");
         *state_restaurado.dek.lock().unwrap() = Some(dek_restaurada);
         *state_restaurado.conn.lock().unwrap() = Some(conn_rest);
 

@@ -20,9 +20,10 @@ Se você identificar uma falha de segurança, vulnerabilidade na implementação
 vazamento de dados:
 
 1. **Não abra uma issue pública.**
-2. Envie os detalhes diretamente para o desenvolvedor principal (Felipe) por canal privado e seguro.
-3. Descreva:
-   - Tipo de vulnerabilidade (ex.: IPC injection, chave residual em memória, etc.).
+2. Utilize o recurso nativo de **[Relatório Privado de Vulnerabilidades do GitHub](https://github.com/AndreFelipe265/LC-Pacientes/security/advisories/new)** (aba *Security* › *Advisories* › *Report a vulnerability*).
+3. Caso prefira contato direto, envie os detalhes em privado ao desenvolvedor principal: **André Felipe** ([@AndreFelipe265](https://github.com/AndreFelipe265)).
+4. Descreva:
+   - Tipo de vulnerabilidade (ex.: IPC injection, chave residual em memória, bypass de bloqueio).
    - Passos detalhados para reproduzir o problema.
    - Impacto potencial para a privacidade da clínica.
 

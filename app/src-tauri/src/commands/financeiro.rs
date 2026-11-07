@@ -274,23 +274,20 @@ pub fn executar_financeiro_listar(
          ORDER BY l.data DESC, l.criado_em DESC;",
     )?;
 
-    let linhas = stmt.query_map(
-        params![prefixo_mes, filtro_tipo, filtro_paciente],
-        |row| {
-            Ok(LancamentoFinanceiro {
-                id: row.get(0)?,
-                paciente_id: row.get(1)?,
-                paciente_nome: row.get(2)?,
-                tipo: row.get(3)?,
-                data: row.get(4)?,
-                valor_centavos: row.get(5)?,
-                descricao: row.get(6)?,
-                forma_pagamento: row.get(7)?,
-                criado_em: row.get(8)?,
-                atualizado_em: row.get(9)?,
-            })
-        },
-    )?;
+    let linhas = stmt.query_map(params![prefixo_mes, filtro_tipo, filtro_paciente], |row| {
+        Ok(LancamentoFinanceiro {
+            id: row.get(0)?,
+            paciente_id: row.get(1)?,
+            paciente_nome: row.get(2)?,
+            tipo: row.get(3)?,
+            data: row.get(4)?,
+            valor_centavos: row.get(5)?,
+            descricao: row.get(6)?,
+            forma_pagamento: row.get(7)?,
+            criado_em: row.get(8)?,
+            atualizado_em: row.get(9)?,
+        })
+    })?;
 
     let mut resultado = Vec::new();
     for linha in linhas {

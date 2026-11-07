@@ -120,11 +120,8 @@ pub fn executar_backup_restaurar(
     let mut dek_guard = state.dek.lock().map_err(|_| Erro::Interno)?;
     let mut conn_guard = state.conn.lock().map_err(|_| Erro::Interno)?;
 
-    let (nova_dek, resumo) = com_arquivo_backup_flexivel(
-        &state.data_dir,
-        caminho,
-        conteudo_base64,
-        |caminho_arq| {
+    let (nova_dek, resumo) =
+        com_arquivo_backup_flexivel(&state.data_dir, caminho, conteudo_base64, |caminho_arq| {
             // Se houver conexão aberta, faz checkpoint e fecha-a logo após a cópia prévia
             let res = restaurar_backup(
                 &state.data_dir,
@@ -134,8 +131,7 @@ pub fn executar_backup_restaurar(
                 dek_guard.as_ref(),
             );
             res
-        },
-    )?;
+        })?;
 
     // Abre nova conexão SQLCipher no banco recém-restaurado e atualiza o estado em memória
     let nova_conn = abrir_banco(&state.data_dir, &nova_dek)?;
@@ -191,13 +187,19 @@ pub async fn backup_selecionar_destino(
         }
     } else {
         let caminho_padrao = resolver_caminho_destino_backup(&state.data_dir, "", agora);
-        (caminho_padrao.parent().map(|d| d.to_path_buf()), nome_padrao)
+        (
+            caminho_padrao.parent().map(|d| d.to_path_buf()),
+            nome_padrao,
+        )
     };
 
     let mut dialog = rfd::AsyncFileDialog::new()
         .set_title("Escolher onde salvar a cópia de segurança (.lcbackup)")
         .set_file_name(&nome_arquivo)
-        .add_filter("Cópia de Segurança LC Pacientes (*.lcbackup)", &["lcbackup"]);
+        .add_filter(
+            "Cópia de Segurança LC Pacientes (*.lcbackup)",
+            &["lcbackup"],
+        );
 
     if let Some(ref dir) = dir_inicial {
         dialog = dialog.set_directory(dir);
@@ -299,9 +301,12 @@ mod tests {
         fs::create_dir_all(&pasta_externa).expect("criar pasta externa");
 
         let state = AppState::new(data_dir.clone());
-        let setup =
-            executar_auth_setup_com_params(&state, "SenhaMestraLouriedna2026", params_argon_rapido())
-                .expect("setup inicial");
+        let setup = executar_auth_setup_com_params(
+            &state,
+            "SenhaMestraLouriedna2026",
+            params_argon_rapido(),
+        )
+        .expect("setup inicial");
         let chave_recuperacao = setup.chave_recuperacao;
 
         // 1. Popula dados completos: config, paciente, sessão, agendamento, documento geral e anamnese
@@ -428,13 +433,9 @@ mod tests {
         assert_eq!(inspecao_senha.n_anamneses, 1);
         assert_eq!(inspecao_senha.n_agendamentos, 1);
 
-        let inspecao_chave = executar_backup_inspecionar(
-            &state,
-            &criado.caminho_arquivo,
-            &chave_recuperacao,
-            None,
-        )
-        .expect("inspecionar com chave de recuperação (RN52)");
+        let inspecao_chave =
+            executar_backup_inspecionar(&state, &criado.caminho_arquivo, &chave_recuperacao, None)
+                .expect("inspecionar com chave de recuperação (RN52)");
         assert_eq!(inspecao_chave, inspecao_senha);
 
         assert_eq!(
@@ -448,13 +449,9 @@ mod tests {
         assert!(!data_dir.exists());
 
         // Restaura usando a CHAVE DE RECUPERAÇÃO em pasta de dados limpa (Aceite F7 + RN52)
-        let restaurado = executar_backup_restaurar(
-            &state,
-            &criado.caminho_arquivo,
-            &chave_recuperacao,
-            None,
-        )
-        .expect("restaurar em pasta limpa usando a chave de recuperação");
+        let restaurado =
+            executar_backup_restaurar(&state, &criado.caminho_arquivo, &chave_recuperacao, None)
+                .expect("restaurar em pasta limpa usando a chave de recuperação");
         assert_eq!(restaurado.n_pacientes, 1);
         assert_eq!(restaurado.n_documentos, 1);
         assert_eq!(restaurado.n_anamneses, 1);

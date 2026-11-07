@@ -17,6 +17,8 @@ O ramo `master` (ou `main`) é protegido. Toda alteração deve passar por um ra
 | `feat/` | Nova funcionalidade ou tarefa do Roadmap | `feat/f4.5-agenda` |
 | `fix/` | Correção de defeito | `fix/bloqueio-inatividade` |
 | `docs/` | Somente documentação | `docs/atualiza-adrs` |
+| `test/` | Criação ou expansão de testes | `test/valida-backups` |
+| `spike/` | Investigação ou prova de conceito técnica | `spike/sqlcipher-wal` |
 | `chore/` | Manutenção, dependências e configurações | `chore/atualiza-ci` |
 
 ---

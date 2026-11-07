@@ -241,7 +241,10 @@ pub fn executar_categoria_excluir(state: &AppState, id: &str) -> Resultado<()> {
         ));
     }
 
-    conn.execute("DELETE FROM categorias_documento WHERE id = ?1;", [id_limpo])?;
+    conn.execute(
+        "DELETE FROM categorias_documento WHERE id = ?1;",
+        [id_limpo],
+    )?;
     Ok(())
 }
 
@@ -320,8 +323,8 @@ mod tests {
         assert_eq!(iniciais[2].nome, "Outros");
 
         // 2. Criar nova categoria
-        let criada = executar_categoria_criar(&state, "  Laudos e Pareceres  ")
-            .expect("criar categoria");
+        let criada =
+            executar_categoria_criar(&state, "  Laudos e Pareceres  ").expect("criar categoria");
         assert_eq!(criada.nome, "Laudos e Pareceres");
         assert_eq!(criada.ordem, 4);
         assert_eq!(criada.total_documentos, 0);

@@ -338,7 +338,8 @@ pub fn executar_horario_semanal_excluir(state: &AppState, id: &str) -> Resultado
     let conn = conn_guard.as_ref().ok_or(Erro::Bloqueado)?;
 
     let id_limpo = id.trim();
-    let linhas_afetadas = conn.execute("DELETE FROM horarios_semanais WHERE id = ?1;", [id_limpo])?;
+    let linhas_afetadas =
+        conn.execute("DELETE FROM horarios_semanais WHERE id = ?1;", [id_limpo])?;
     if linhas_afetadas == 0 {
         return Err(Erro::NaoEncontrado);
     }

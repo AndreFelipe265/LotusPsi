@@ -12,6 +12,9 @@ import {
 } from "../lib/format";
 import { Configuracoes } from "./Configuracoes";
 
+// Chave sintética em formato Crockford Base32 utilizada para simulação em testes (RN54)
+const CHAVE_RECUPERACAO_TESTE = "ABCD-EFGH-JKMN-PQRS-TVWX-YZ23";
+
 describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32)", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -185,7 +188,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
       target: { value: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup" },
     });
     fireEvent.change(inputSenhaRestaurar, {
-      target: { value: "ABCD-EFGH-JKMN-PQRS-TVWX-YZ23" },
+      target: { value: CHAVE_RECUPERACAO_TESTE },
     });
 
     fireEvent.click(screen.getByTestId("botao-inspecionar-backup"));
@@ -193,7 +196,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     await waitFor(() => {
       expect(inspecionarSpy).toHaveBeenCalledWith({
         caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup",
-        senha: "ABCD-EFGH-JKMN-PQRS-TVWX-YZ23",
+        senha: CHAVE_RECUPERACAO_TESTE,
         conteudo_base64: null,
       });
     });
@@ -232,7 +235,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     await waitFor(() => {
       expect(restaurarSpy).toHaveBeenCalledWith({
         caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup",
-        senha: "ABCD-EFGH-JKMN-PQRS-TVWX-YZ23",
+        senha: CHAVE_RECUPERACAO_TESTE,
         conteudo_base64: null,
       });
     });

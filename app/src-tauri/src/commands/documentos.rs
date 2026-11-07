@@ -559,7 +559,8 @@ mod tests {
 
         // 1. Criar um PDF e um DOCX sintéticos válidos
         let origem_pdf = pasta_origem.join("Termo_de_Consentimento.pdf");
-        let conteudo_pdf = b"%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nConteudo sigiloso do termo!\n%%EOF";
+        let conteudo_pdf =
+            b"%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nConteudo sigiloso do termo!\n%%EOF";
         fs::write(&origem_pdf, conteudo_pdf).expect("gravar pdf");
         let sha_pdf_original = calcular_sha256_arquivo(&origem_pdf).expect("sha256 pdf");
 
@@ -634,8 +635,7 @@ mod tests {
 
         // 6. Baixar PDF e DOCX e confirmar que o SHA-256 é idêntico (Critério de Aceite F6)
         let destino_pdf = pasta_origem.join("baixado_termo.pdf");
-        executar_documento_baixar(&state, &doc_pdf.id, destino_pdf.to_str())
-            .expect("baixar PDF");
+        executar_documento_baixar(&state, &doc_pdf.id, destino_pdf.to_str()).expect("baixar PDF");
         assert_eq!(
             calcular_sha256_arquivo(&destino_pdf).unwrap(),
             sha_pdf_original

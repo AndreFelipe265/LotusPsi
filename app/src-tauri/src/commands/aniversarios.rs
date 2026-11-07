@@ -129,7 +129,10 @@ pub fn construir_url_whatsapp_parabens(
     let mensagem_final = template.replace("{primeiro_nome}", &primeiro_nome);
     let texto_codificado = codificar_url_componente(&mensagem_final);
 
-    Ok(format!("https://wa.me/{}?text={}", numero_wa, texto_codificado))
+    Ok(format!(
+        "https://wa.me/{}?text={}",
+        numero_wa, texto_codificado
+    ))
 }
 
 /// Consulta os aniversariantes entre `hoje` e `hoje + dias` (inclusive),
@@ -266,9 +269,7 @@ pub fn gerar_url_whatsapp_parabens_paciente(
         .filter(|s| !s.is_empty())
         .or_else(|| telefone.as_deref().map(str::trim).filter(|s| !s.is_empty()))
         .ok_or_else(|| {
-            Erro::Validacao(
-                "Este paciente não possui telefone ou WhatsApp cadastrado.".to_string(),
-            )
+            Erro::Validacao("Este paciente não possui telefone ou WhatsApp cadastrado.".to_string())
         })?;
 
     let template_salvo = ler_config_conn(conn, CHAVE_CONFIG_MENSAGEM_ANIVERSARIO)?;

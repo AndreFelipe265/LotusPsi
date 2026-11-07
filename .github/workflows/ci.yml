@@ -31,7 +31,7 @@ jobs:
 
       - name: Nenhum segredo aparente no código
         run: |
-          if git grep -nEi "(api[_-]?key|secret|token|password|passwd|senha)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9_/+.-]{16,}['\"]" -- . ':!.github/workflows/*' ':!*.example'; then
+          if git grep -nEi "(api[_-]?key|secret|token|password|passwd|senha)[[:space:]]*[:=][[:space:]]*['\"][A-Za-z0-9_/+.-]{16,}['\"]" -- . ':!.github/workflows/*' ':!*.example'; then
             echo "::error::Possível segredo literal detectado no código."
             exit 1
           fi
@@ -115,6 +115,10 @@ jobs:
       - name: Formatação (rustfmt)
         working-directory: app/src-tauri
         run: cargo fmt --check
+
+      - name: Análise estática (Clippy)
+        working-directory: app/src-tauri
+        run: cargo clippy -- -D warnings
 
       - name: Testes unitários do Rust (Cargo)
         working-directory: app/src-tauri

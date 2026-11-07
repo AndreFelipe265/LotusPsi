@@ -93,7 +93,9 @@ pub fn intervalos_conflitam(inicio_a: i64, duracao_a: i64, inicio_b: i64, duraca
     inicio_a < fim_b && inicio_b < fim_a
 }
 
-fn validar_dados_agendamento(dados: &DadosAgendamentoInput) -> Resultado<DadosAgendamentoValidados> {
+fn validar_dados_agendamento(
+    dados: &DadosAgendamentoInput,
+) -> Resultado<DadosAgendamentoValidados> {
     let paciente_id = dados.paciente_id.trim().to_string();
     if paciente_id.is_empty() {
         return Err(Erro::Validacao(
@@ -762,14 +764,9 @@ mod tests {
         assert!(ag1.conflito_descricao.is_none());
 
         // 2. Verificar conflito antes de criar 2º agendamento às 14:00 ou 14:30 (RN73)
-        let conflitos_previos = executar_agendamentos_verificar_conflito(
-            &state,
-            "2026-11-02",
-            "14:00",
-            Some(50),
-            None,
-        )
-        .expect("verificar conflito");
+        let conflitos_previos =
+            executar_agendamentos_verificar_conflito(&state, "2026-11-02", "14:00", Some(50), None)
+                .expect("verificar conflito");
         assert_eq!(conflitos_previos.len(), 1);
         assert_eq!(conflitos_previos[0].id, ag1.id);
 
@@ -818,13 +815,9 @@ mod tests {
         .expect("criar ag_fora");
 
         // 5. Consulta por intervalo da semana (2026-11-01 a 2026-11-07) retorna os 3 agendamentos da semana
-        let semana = executar_agendamentos_listar(
-            &state,
-            Some("2026-11-01"),
-            Some("2026-11-07"),
-            None,
-        )
-        .expect("listar semana");
+        let semana =
+            executar_agendamentos_listar(&state, Some("2026-11-01"), Some("2026-11-07"), None)
+                .expect("listar semana");
         assert_eq!(semana.len(), 3);
         assert!(semana[0].conflito);
         assert!(semana[1].conflito);
@@ -846,23 +839,18 @@ mod tests {
         assert!(!ag2_remarcado.conflito);
         assert_eq!(ag2_remarcado.hora_inicio, "15:00");
 
-        let do_dia_pos_remarcar = executar_agendamentos_listar(
-            &state,
-            Some("2026-11-02"),
-            Some("2026-11-02"),
-            None,
-        )
-        .expect("listar dia após remarcar");
+        let do_dia_pos_remarcar =
+            executar_agendamentos_listar(&state, Some("2026-11-02"), Some("2026-11-02"), None)
+                .expect("listar dia após remarcar");
         assert_eq!(do_dia_pos_remarcar.len(), 2);
         assert!(!do_dia_pos_remarcar[0].conflito);
         assert!(!do_dia_pos_remarcar[1].conflito);
 
         // 7. Próximo agendamento do paciente (RN77)
         let hoje = NaiveDate::from_ymd_opt(2026, 11, 3).unwrap();
-        let proximo_joao =
-            executar_agendamento_proximo_paciente_em_data(&state, &joao.id, hoje)
-                .expect("próximo de João")
-                .expect("deve existir");
+        let proximo_joao = executar_agendamento_proximo_paciente_em_data(&state, &joao.id, hoje)
+            .expect("próximo de João")
+            .expect("deve existir");
         assert_eq!(proximo_joao.id, ag3.id);
         assert_eq!(proximo_joao.data, "2026-11-05");
 

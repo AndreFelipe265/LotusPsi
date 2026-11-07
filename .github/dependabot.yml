@@ -5,6 +5,8 @@ updates:
     directory: /app
     schedule:
       interval: weekly
+    commit-message:
+      prefix: "chore"
     groups:
       frontend:
         patterns: ["*"]
@@ -13,6 +15,8 @@ updates:
     directory: /app/src-tauri
     schedule:
       interval: weekly
+    commit-message:
+      prefix: "chore"
     groups:
       backend:
         patterns: ["*"]
@@ -21,3 +25,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    commit-message:
+      prefix: "chore"
+

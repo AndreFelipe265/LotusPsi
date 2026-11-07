@@ -172,12 +172,13 @@ pub fn rotacionar_boas_vindas_com_semente_conn(
         })
         .unwrap_or_default();
 
-    let mut estado_rng = if aleatorio == 0 { 0x853c49e6748fea9b } else { aleatorio };
-    let (escolhido, nova_fila) = avancar_ciclo_boas_vindas(
-        fila_atual,
-        ultimo_indice,
-        total,
-        || {
+    let mut estado_rng = if aleatorio == 0 {
+        0x853c49e6748fea9b
+    } else {
+        aleatorio
+    };
+    let (escolhido, nova_fila) =
+        avancar_ciclo_boas_vindas(fila_atual, ultimo_indice, total, || {
             estado_rng ^= estado_rng << 13;
             estado_rng ^= estado_rng >> 7;
             estado_rng ^= estado_rng << 17;
@@ -185,8 +186,7 @@ pub fn rotacionar_boas_vindas_com_semente_conn(
                 estado_rng = 0x853c49e6748fea9b;
             }
             estado_rng
-        },
-    );
+        });
 
     let fila_serializada = nova_fila
         .iter()
@@ -309,7 +309,8 @@ mod tests {
     }
 
     #[test]
-    fn novo_ciclo_embaralhado_contem_todos_os_indices_e_primeiro_difere_do_ultimo_da_lista_passada() {
+    fn novo_ciclo_embaralhado_contem_todos_os_indices_e_primeiro_difere_do_ultimo_da_lista_passada()
+    {
         let total = MENSAGENS_BOAS_VINDAS.len();
         for ultimo in 0..total {
             for semente in 1..=50u64 {
