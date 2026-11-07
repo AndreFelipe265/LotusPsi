@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logoLc from "../assets/logo-lc.svg";
+import logoLotusPsi from "../assets/logo-lotuspsi.svg";
 import { authLogin, extrairErroApi } from "../lib/api";
 
 export interface LoginProps {
@@ -56,13 +56,13 @@ export function Login({
     <div className="max-w-md w-full bg-fundo-claro border border-rosa-claro rounded-2xl shadow-sm p-8 space-y-6">
       <div className="flex flex-col items-center text-center space-y-2">
         <img
-          src={logoLc}
-          alt="Logo LC — Louriedna Costa Pereira"
+          src={logoLotusPsi}
+          alt="Logo LotusPsi"
           className="w-28 h-auto select-none"
         />
-        <h1 className="text-2xl font-bold text-malva">LC Pacientes</h1>
+        <h1 className="text-2xl font-bold text-malva">LotusPsi</h1>
         <p className="text-base text-lilas-acinzentado">
-          Louriedna Costa Pereira — Psicóloga · CRP 03/29434
+          Psicóloga Clínica · CRP 00/00000
         </p>
         {modoOverlay && (
           <p className="text-base font-semibold text-texto pt-1">

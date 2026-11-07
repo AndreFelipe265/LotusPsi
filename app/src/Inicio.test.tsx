@@ -22,7 +22,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     vi.restoreAllMocks();
   });
 
-  it("exibe saudação à Louriedna, total de pacientes ativos, atalhos, espaço de aniversariantes e backup", async () => {
+  it("exibe saudação inicial, total de pacientes ativos, atalhos, espaço de aniversariantes e backup", async () => {
     vi.spyOn(api, "pacientesListar").mockResolvedValue([
       {
         id: "1",
@@ -47,7 +47,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
 
     // Saudação em pt-BR
     expect(
-      screen.getByRole("heading", { name: /Olá, Louriedna!/i }),
+      screen.getByRole("heading", { name: /Olá!/i }),
     ).toBeInTheDocument();
 
     // Total de pacientes ativos atualizado
@@ -100,7 +100,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
 
     // Aguarda carregar o Painel Inicial
     expect(
-      await screen.findByRole("heading", { name: /Olá, Louriedna!/i }),
+      await screen.findByRole("heading", { name: /Olá!/i }),
     ).toBeInTheDocument();
 
     // 1 clique no atalho "Novo paciente" leva direto ao formulário T06
@@ -112,7 +112,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     // Volta ao Início em 1 clique na Sidebar
     fireEvent.click(screen.getByRole("link", { name: /^Início$/i }));
     expect(
-      await screen.findByRole("heading", { name: /Olá, Louriedna!/i }),
+      await screen.findByRole("heading", { name: /Olá!/i }),
     ).toBeInTheDocument();
 
     // 1 clique no atalho "Buscar paciente" leva à lista de pacientes T05
@@ -131,7 +131,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
 
     const { container } = render(<App rotaInicial="/" />);
 
-    await screen.findByRole("heading", { name: /Olá, Louriedna!/i });
+    await screen.findByRole("heading", { name: /Olá!/i });
 
     const todosElementos = Array.from(container.querySelectorAll("*"));
     for (const el of todosElementos) {
@@ -187,7 +187,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     render(<App rotaInicial="/" tempoInatividadeMs={120} />);
 
     expect(
-      await screen.findByRole("heading", { name: /Olá, Louriedna!/i }),
+      await screen.findByRole("heading", { name: /Olá!/i }),
     ).toBeInTheDocument();
 
     // 1. Clicar no atalho "Registrar sessão" abre a busca rápida de paciente
@@ -265,7 +265,9 @@ describe("Painel Inicial T04 (F2-T3)", () => {
   });
 
   it("exibe saudação por horário e boas-vindas rotativas sem repetir a anterior ao logar 3 vezes (F4.5-T1 — RN60–RN62)", async () => {
-    expect(MENSAGENS_BOAS_VINDAS).toContain("Eu te amo, mãe! ❤️");
+    expect(MENSAGENS_BOAS_VINDAS).toContain(
+      "Desejamos um excelente dia de atendimentos! ✨",
+    );
     expect(MENSAGENS_BOAS_VINDAS.length).toBe(9);
 
     for (let idx = 0; idx < MENSAGENS_BOAS_VINDAS.length; idx++) {
@@ -594,8 +596,8 @@ describe("Painel Inicial T04 (F2-T3)", () => {
 
     const novoBackupIso = `${hojeIso}T19:45:00-03:00`;
     const backupCriarSpy = vi.spyOn(api, "backupCriar").mockResolvedValue({
-      caminho_arquivo: "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
-      nome_arquivo: "backup-pacientes-2026-11-06-1945.lcbackup",
+      caminho_arquivo: "/media/pendrive/backup-pacientes-2026-11-06-1945.lotusbackup",
+      nome_arquivo: "backup-pacientes-2026-11-06-1945.lotusbackup",
       tamanho: 204800,
       tamanho_bytes: 204800,
       criado_em: novoBackupIso,
@@ -625,7 +627,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     const lembrete = screen.getByTestId("lembrete-backup-7-dias");
     expect(lembrete).toHaveTextContent(/10 dias/i);
 
-    // 2. Clicar em "Fazer backup agora" abre o modal com nome sugerido backup-pacientes-AAAA-MM-DD-HHmm.lcbackup (RN50, RN51)
+    // 2. Clicar em "Fazer backup agora" abre o modal com nome sugerido backup-pacientes-AAAA-MM-DD-HHmm.lotusbackup (RN50, RN51)
     fireEvent.click(
       screen.getByRole("button", { name: /^Fazer backup agora$/i }),
     );
@@ -637,20 +639,20 @@ describe("Painel Inicial T04 (F2-T3)", () => {
       /Pasta ou caminho para salvar o backup/i,
     ) as HTMLInputElement;
     expect(inputCaminho.value).toMatch(
-      /^backup-pacientes-\d{4}-\d{2}-\d{2}-\d{4}\.lcbackup$/,
+      /^backup-pacientes-\d{4}-\d{2}-\d{2}-\d{4}\.lotusbackup$/,
     );
 
     // 3. Usuária escolhe pasta de destino e confirma o backup
     fireEvent.change(inputCaminho, {
       target: {
-        value: "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
+        value: "/media/pendrive/backup-pacientes-2026-11-06-1945.lotusbackup",
       },
     });
     fireEvent.click(screen.getByTestId("confirmar-salvar-backup-inicio"));
 
     await waitFor(() => {
       expect(backupCriarSpy).toHaveBeenCalledWith(
-        "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
+        "/media/pendrive/backup-pacientes-2026-11-06-1945.lotusbackup",
       );
     });
 

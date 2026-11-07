@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logoLc from "../assets/logo-lc.svg";
+import logoLotusPsi from "../assets/logo-lotuspsi.svg";
 import { authRecover, extrairErroApi } from "../lib/api";
 import { calcularForcaSenha } from "../lib/format";
 
@@ -59,8 +59,8 @@ export function Recuperar({
       <div className="max-w-xl w-full bg-fundo-claro border border-rosa-claro rounded-2xl shadow-sm p-8 space-y-6">
         <div className="flex flex-col items-center text-center space-y-2">
           <img
-            src={logoLc}
-            alt="Logo LC — Louriedna Costa Pereira"
+            src={logoLotusPsi}
+            alt="Logo LotusPsi"
             className="w-24 h-auto select-none"
           />
           <h1 className="text-2xl font-bold text-malva">Recuperar acesso</h1>

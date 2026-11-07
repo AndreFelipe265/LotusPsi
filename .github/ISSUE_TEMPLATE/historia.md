@@ -8,7 +8,7 @@ assignees: ''
 
 ## Objetivo
 
-Como **Louriedna (psicóloga)**, quero **<ação/recurso>**, para **<benefício no atendimento clínico>**.
+Como **psicóloga clínica**, quero **<ação/recurso>**, para **<benefício no atendimento clínico>**.
 
 ## Critérios de Aceite
 

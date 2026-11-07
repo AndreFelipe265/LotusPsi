@@ -1,6 +1,6 @@
 ## O que muda
 
-<!-- Descreva o efeito visível para a usuária (Louriedna) ou o impacto funcional no sistema. -->
+<!-- Descreva o efeito visível para a usuária final ou o impacto funcional no sistema. -->
 
 ## Tarefa e Requisitos Relacionados
 

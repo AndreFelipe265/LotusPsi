@@ -561,7 +561,7 @@ mod tests {
         assert!(url_padrao.starts_with("https://wa.me/5571998765432?text="));
         // "Olá, Maria! Feliz aniversário!" codificado em UTF-8
         assert!(url_padrao.contains("Maria"));
-        assert!(url_padrao.contains("Louriedna"));
+        assert!(url_padrao.contains("Feliz%20anivers"));
 
         // 2. Quando a usuária personaliza a mensagem em Configurações (RN32), usa o novo texto
         {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logoLc from "../assets/logo-lc.svg";
+import logoLotusPsi from "../assets/logo-lotuspsi.svg";
 import { Button, ConfirmDialog, Input, Modal, Toast } from "../components";
 import {
   authChangePassword,
@@ -303,7 +303,7 @@ export function Configuracoes() {
     setToastSucesso(null);
 
     if (!arquivoBackupSelecionado && !caminhoBackupRestaurar.trim()) {
-      setErroRestauracao("Selecione ou informe o caminho do arquivo .lcbackup.");
+      setErroRestauracao("Selecione ou informe o caminho do arquivo .lotusbackup.");
       return;
     }
 
@@ -578,7 +578,7 @@ export function Configuracoes() {
               <strong>{formatarDataHoraBackupBr(ultimoBackupIso)}</strong>
             </p>
             <p className="text-base text-lilas-acinzentado">
-              O arquivo <strong>.lcbackup</strong> reúne pacientes, sessões,
+              O arquivo <strong>.lotusbackup</strong> reúne pacientes, sessões,
               agenda, documentos gerais e fichas de anamnese com criptografia.
             </p>
           </div>
@@ -608,7 +608,7 @@ export function Configuracoes() {
               Restaurar cópia de segurança
             </h4>
             <p className="text-base text-texto">
-              Selecione um arquivo <strong>.lcbackup</strong> e digite a senha
+              Selecione um arquivo <strong>.lotusbackup</strong> e digite a senha
               do backup (ou a sua chave de recuperação de 24 caracteres). Antes
               de substituir os dados, o sistema criará automaticamente uma cópia
               de segurança dos dados atuais.
@@ -618,7 +618,7 @@ export function Configuracoes() {
           <input
             ref={inputArquivoBackupRef}
             type="file"
-            accept=".lcbackup"
+            accept=".lotusbackup,.lcbackup"
             data-testid="input-arquivo-restaurar-backup"
             className="hidden"
             onChange={aoSelecionarArquivoBackup}
@@ -632,14 +632,14 @@ export function Configuracoes() {
               <div className="flex-1">
                 <Input
                   id="campo-caminho-restaurar-backup"
-                  rotulo="Arquivo de backup (.lcbackup)"
+                  rotulo="Arquivo de backup (.lotusbackup)"
                   value={caminhoBackupRestaurar}
                   onChange={(e) => {
                     setCaminhoBackupRestaurar(e.target.value);
                     setArquivoBackupSelecionado(null);
                     setInspecaoBackup(null);
                   }}
-                  placeholder="Selecione o arquivo .lcbackup ou cole o caminho..."
+                  placeholder="Selecione o arquivo .lotusbackup ou cole o caminho..."
                 />
               </div>
               <Button
@@ -647,7 +647,7 @@ export function Configuracoes() {
                 variante="contorno"
                 onClick={() => inputArquivoBackupRef.current?.click()}
               >
-                Escolher arquivo .lcbackup
+                Escolher arquivo .lotusbackup
               </Button>
             </div>
 
@@ -928,20 +928,20 @@ export function Configuracoes() {
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
           <img
-            src={logoLc}
-            alt="Logo LC Consultório"
+            src={logoLotusPsi}
+            alt="Logo LotusPsi"
             className="w-20 h-auto select-none shrink-0"
           />
           <div className="space-y-1">
             <h3 className="text-xl font-bold text-malva">
-              LC Consultório — Sistema de Pacientes e Documentos
+              LotusPsi — Sistema de Gestão Clínica e Prontuário
             </h3>
             <p className="text-base font-semibold text-texto">
-              Versão 0.1.0 • Desenvolvido sob medida para a psicóloga{" "}
-              <span className="text-malva">Louriedna Costa Pereira (CRP 03/29434)</span>
+              Versão 0.1.0 • Desenvolvido para gestão clínica em psicologia{" "}
+              <span className="text-malva">(CRP 00/00000)</span>
             </p>
             <p className="text-base text-lilas-acinzentado">
-              Autoria e desenvolvimento por seu filho, Felipe.
+              Autoria e desenvolvimento por André Felipe.
             </p>
           </div>
         </div>
@@ -1015,7 +1015,7 @@ export function Configuracoes() {
       >
         <div className="space-y-4">
           <p className="text-base text-texto">
-            O sistema criará um único arquivo <strong>.lcbackup</strong>{" "}
+            O sistema criará um único arquivo <strong>.lotusbackup</strong>{" "}
             criptografado com todos os seus pacientes, sessões, agenda,
             documentos gerais e fichas de anamnese, verificando a integridade ao
             final.
@@ -1025,10 +1025,10 @@ export function Configuracoes() {
               <Input
                 id="campo-caminho-destino-backup-config"
                 data-testid="campo-caminho-destino-backup-config"
-                rotulo="Pasta ou caminho para salvar o backup (.lcbackup)"
+                rotulo="Pasta ou caminho para salvar o backup (.lotusbackup)"
                 value={caminhoDestinoBackup}
                 onChange={(e) => setCaminhoDestinoBackup(e.target.value)}
-                placeholder="Ex.: /home/.../Downloads/backup-...lcbackup"
+                placeholder="Ex.: /home/.../Downloads/backup-...lotusbackup"
                 ajuda="Por padrão, salvo na pasta de Downloads. Você pode clicar em 'Escolher pasta...' para selecionar seu pendrive ou pasta na nuvem."
               />
             </div>

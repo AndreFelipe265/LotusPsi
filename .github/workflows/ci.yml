@@ -23,7 +23,7 @@ jobs:
 
       - name: Nenhum arquivo de dados ou backup versionado
         run: |
-          if git ls-files | grep -Ei '\.(sqlite|db|lcbackup|parquet|xlsx|xls)$' || git ls-files | grep -Ei '\.csv$' | grep -v '^docs/exemplos/'; then
+          if git ls-files | grep -Ei '\.(sqlite|db|lcbackup|lotusbackup|parquet|xlsx|xls)$' || git ls-files | grep -Ei '\.csv$' | grep -v '^docs/exemplos/'; then
             echo "::error::Arquivo de dados ou backup versionado fora de docs/exemplos/."
             exit 1
           fi

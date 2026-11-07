@@ -362,10 +362,10 @@ export function Inicio() {
             data-testid="saudacao-horario"
             className="text-base font-semibold text-lilas-acinzentado"
           >
-            {saudacaoHorario}, Louriedna Costa!
+            {saudacaoHorario}!
           </p>
           <h2 className="text-2xl font-bold text-malva">
-            Olá, Louriedna! — Painel Inicial
+            Olá! — Painel Inicial
           </h2>
           <p
             data-testid="mensagem-boas-vindas"
@@ -738,7 +738,7 @@ export function Inicio() {
       >
         <div className="space-y-4">
           <p className="text-base text-texto">
-            O sistema criará um único arquivo <strong>.lcbackup</strong>{" "}
+            O sistema criará um único arquivo <strong>.lotusbackup</strong>{" "}
             criptografado com todos os seus pacientes, sessões, agenda,
             documentos gerais e fichas de anamnese, verificando a integridade ao
             final.
@@ -748,10 +748,10 @@ export function Inicio() {
               <Input
                 id="campo-caminho-destino-backup-inicio"
                 data-testid="campo-caminho-destino-backup-inicio"
-                rotulo="Pasta ou caminho para salvar o backup (.lcbackup)"
+                rotulo="Pasta ou caminho para salvar o backup (.lotusbackup)"
                 value={caminhoDestinoBackup}
                 onChange={(e) => setCaminhoDestinoBackup(e.target.value)}
-                placeholder="Ex.: /home/.../Downloads/backup-...lcbackup"
+                placeholder="Ex.: /home/.../Downloads/backup-...lotusbackup"
                 ajuda="Por padrão, salvo na pasta de Downloads. Você pode clicar em 'Escolher pasta...' para selecionar seu pendrive ou pasta na nuvem."
               />
             </div>

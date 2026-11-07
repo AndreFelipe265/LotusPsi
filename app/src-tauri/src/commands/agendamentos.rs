@@ -661,7 +661,7 @@ mod tests {
         let paciente = executar_paciente_criar(
             &state,
             &DadosPacienteInput {
-                nome: "Mariana Costa".to_string(),
+                nome: "Mariana Oliveira".to_string(),
                 ..Default::default()
             },
         )
@@ -680,7 +680,7 @@ mod tests {
         )
         .expect("criar agendamento no passado");
         assert_eq!(passado.duracao_min, 50);
-        assert_eq!(passado.paciente_nome, "Mariana Costa");
+        assert_eq!(passado.paciente_nome, "Mariana Oliveira");
         assert!(!passado.conflito);
 
         let futuro = executar_agendamento_criar(

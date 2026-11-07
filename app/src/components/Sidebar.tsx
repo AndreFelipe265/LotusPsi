@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import logoLc from "../assets/logo-lc.svg";
+import logoLotusPsi from "../assets/logo-lotuspsi.svg";
 import { Button } from "./Button";
 
 export interface SidebarProps {
@@ -34,19 +34,19 @@ export function Sidebar({ aoSair }: SidebarProps) {
       <div className="space-y-4">
         <div className="flex items-center gap-3 pb-4 border-b border-rosa-claro">
           <img
-            src={logoLc}
-            alt="Logo LC — Louriedna Costa Pereira"
+            src={logoLotusPsi}
+            alt="Logo LotusPsi"
             className="w-12 xl:w-14 h-auto select-none shrink-0"
           />
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-malva leading-tight truncate">
-              LC Pacientes
+              LotusPsi
             </h1>
             <p className="text-base text-lilas-acinzentado leading-snug truncate">
-              Louriedna Costa Pereira
+              Psicóloga Clínica
             </p>
             <p className="text-base text-lilas-acinzentado leading-snug truncate">
-              Psicóloga · CRP 03/29434
+              CRP 00/00000
             </p>
           </div>
         </div>

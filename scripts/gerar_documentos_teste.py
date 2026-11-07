@@ -152,7 +152,7 @@ def main():
     criar_pdf_simples(
         os.path.join(BASE_DIR, "01_Modelos", "Contrato_Prestacao_Servicos_Psicologia.pdf"),
         "CONTRATO DE PRESTACAO DE SERVICOS PSICOLOGICOS",
-        "LC Consultorio de Psicologia - CRP 03/29434",
+        "Consultorio de Psicologia Clinica - CRP 00/00000",
         [
             "1. DO OBJETO: O presente instrumento tem por objeto a prestacao de servicos de atendimento psicologico clinico individualizado.",
             "2. DO SIGILO PROFISSIONAL: Os atendimentos sao estritamente confidenciais, resguardados pelo Codigo de Etica Profissional do Psicologo (Resolucao CFP no 010/05).",
@@ -179,12 +179,12 @@ def main():
     criar_pdf_simples(
         os.path.join(BASE_DIR, "02_Administrativo", "Recibo_Consulta_Psicologica.pdf"),
         "RECIBO DE HONORARIOS PROFISSIONAIS",
-        "LC Consultorio de Psicologia Clinica",
+        "Consultorio de Psicologia Clinica",
         [
             "Declaramos para os devidos fins de comprovacao que recebemos de Paciente Teste a quantia referente aos atendimentos psicologicos clinicos prestados.",
             "Valor total: R$ 200,00 (duzentos reais).",
             "Data de emissao: 02 de novembro de 2026.",
-            "Louriedna Costa Pereira - Psicologa Clinica - CRP 03/29434."
+            "Dra. Psicologa Teste - Psicologa Clinica - CRP 00/00000."
         ]
     )
 
@@ -196,19 +196,19 @@ def main():
             "Declaro para os devidos fins que o(a) paciente compareceu a este consultório de psicologia "
             "no dia 02/11/2026, no período das 14:00 às 14:50, para atendimento psicoterápico.\n\n"
             "Salvador/BA, 02 de novembro de 2026.\n\n"
-            "Louriedna Costa Pereira\n"
-            "Psicóloga Clínica - CRP 03/29434\n"
+            "Dra. Psicóloga Teste\n"
+            "Psicóloga Clínica - CRP 00/00000\n"
         )
 
     # 3. ANAMNESES PARA ANEXAR AO PERFIL DO PACIENTE (RN65–RN69)
     criar_pdf_simples(
-        os.path.join(BASE_DIR, "03_Anamneses_Para_Pacientes", "Anamnese_Clinica_Mariana_Costa.pdf"),
-        "ANAMNESE CLINICA COMPLETA - MARIANA COSTA",
+        os.path.join(BASE_DIR, "03_Anamneses_Para_Pacientes", "Anamnese_Clinica_Mariana_Oliveira.pdf"),
+        "ANAMNESE CLINICA COMPLETA - MARIANA OLIVEIRA",
         "Prontuario Clinico - Primeira Entrevista",
         [
-            "Paciente: Mariana Costa, 32 anos. Escolaridade: Superior Completo.",
+            "Paciente: Mariana Oliveira, 32 anos. Escolaridade: Superior Completo.",
             "Queixa Inicial: Sintomatologia ansiosa associada a sobrecarga de trabalho e insonia intermediaria.",
-            "Historico Familiar: Relacionamento saudavel com a mae, perda do pai ha tres anos.",
+            "Historico Familiar: Relacionamento saudavel com a familia, suporte presente.",
             "Encaminhamentos e Plano de Acao: Introducao de tecnicas de autorregulacao e monitoramento de pensamentos automaticos."
         ]
     )
@@ -261,7 +261,7 @@ Esta pasta contém arquivos fictícios e sintéticos preparados especialmente pa
 - **`Declaracao_de_Comparecimento.txt`**: Teste de envio de documento em texto puro (`.txt`).
 
 ### 📁 `03_Anamneses_Para_Pacientes/`
-- **`Anamnese_Clinica_Mariana_Costa.pdf`**: Vá até o perfil de qualquer paciente cadastrado e anexe este arquivo na seção **Anamnese** (usando o botão "Anexar anamnese" ou arrastando e soltando). Teste as ações **Abrir**, **Baixar** e **Excluir**.
+- **`Anamnese_Clinica_Mariana_Oliveira.pdf`**: Vá até o perfil de qualquer paciente cadastrado e anexe este arquivo na seção **Anamnese** (usando o botão "Anexar anamnese" ou arrastando e soltando). Teste as ações **Abrir**, **Baixar** e **Excluir**.
 - **`Relatorio_Escolar_Anamnese_Lucas.docx`**: Teste de anexo de documento Word (`.docx`) no perfil de paciente infantil.
 
 ### 📁 `04_Imagens/`

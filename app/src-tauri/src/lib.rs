@@ -14,13 +14,13 @@ use tauri::Manager;
 use crate::state::AppState;
 
 /// Resolve o diretório de dados do aplicativo conforme a seção 7 da Fonte da Verdade:
-/// - Windows: `%APPDATA%\LC Pacientes\`
-/// - Linux: `~/.local/share/lc-pacientes/`
+/// - Windows: `%APPDATA%\LotusPsi\`
+/// - Linux: `~/.local/share/lotuspsi/`
 pub fn resolver_pasta_dados() -> PathBuf {
     #[cfg(target_os = "windows")]
     {
         if let Ok(appdata) = std::env::var("APPDATA") {
-            return PathBuf::from(appdata).join("LC Pacientes");
+            return PathBuf::from(appdata).join("LotusPsi");
         }
     }
 
@@ -28,18 +28,18 @@ pub fn resolver_pasta_dados() -> PathBuf {
     {
         if let Ok(xdg_data) = std::env::var("XDG_DATA_HOME") {
             if !xdg_data.trim().is_empty() {
-                return PathBuf::from(xdg_data).join("lc-pacientes");
+                return PathBuf::from(xdg_data).join("lotuspsi");
             }
         }
         if let Ok(home) = std::env::var("HOME") {
             return PathBuf::from(home)
                 .join(".local")
                 .join("share")
-                .join("lc-pacientes");
+                .join("lotuspsi");
         }
     }
 
-    PathBuf::from("lc-pacientes-dados")
+    PathBuf::from("lotuspsi-dados")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

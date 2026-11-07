@@ -38,7 +38,7 @@ flowchart TD
     subgraph Storage ["Armazenamento Local Criptografado"]
         SQLite["banco.sqlite (Cifrado com SQLCipher)"]
         DocVault["Pasta docs/ e anamneses/ (Cifrados XChaCha20)"]
-        BackupFile[".lcbackup (Pacote Criptografado)"]
+        BackupFile[".lotusbackup (Pacote Criptografado)"]
 
         DB --> SQLite
         Files --> DocVault
@@ -62,10 +62,10 @@ flowchart TD
 - **Decisão:** Utilizar SQLite compilado com **SQLCipher** (`rusqlite` com a feature `bundled-sqlcipher`), operando com modo WAL e integridade transacional.
 - **Consequências:** O arquivo `.sqlite` em disco é ilegível sem a chave derivada correta. Antes de backups é necessário efetuar `wal_checkpoint(TRUNCATE)`.
 
-### ADR-003: XChaCha20-Poly1305 para Documentos e Backups (.lcbackup)
+### ADR-003: XChaCha20-Poly1305 para Documentos e Backups (.lotusbackup)
 - **Status:** Aprovada (01/11/2026)
 - **Contexto:** Além do banco relacional, a usuária anexa arquivos PDF/DOCX (modelos, declarações e anamneses) e gera arquivos de backup para pendrives.
-- **Decisão:** Criptografia autenticada com **XChaCha20-Poly1305**, gerando nonces de 192 bits aleatórios e arquivo proprietário `.lcbackup` contendo checksum SHA-256 e verificação pós-gravação.
+- **Decisão:** Criptografia autenticada com **XChaCha20-Poly1305**, gerando nonces de 192 bits aleatórios e arquivo proprietário `.lotusbackup` contendo checksum SHA-256 e verificação pós-gravação.
 - **Consequências:** Proteção contra manipulação acidental e impossibilidade de reutilização perigosa de nonces.
 
 ### ADR-004: KDF Argon2id e Chave Física de Recuperação em Papel

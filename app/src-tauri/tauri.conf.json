@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "LC Pacientes",
+  "productName": "LotusPsi",
   "version": "0.1.0",
-  "identifier": "br.com.louriednacosta.pacientes",
+  "identifier": "br.com.andrefelipe.lotuspsi",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "LC Pacientes",
+        "title": "LotusPsi",
         "width": 1200,
         "height": 800,
         "minWidth": 960,
@@ -28,10 +28,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "publisher": "Felipe — LC Consultório",
-    "copyright": "Copyright © 2026 Louriedna Costa Pereira (CRP 03/29434)",
-    "shortDescription": "LC Pacientes — Sistema de Pacientes e Documentos",
-    "longDescription": "Sistema desktop 100% offline de gestão clínica desenvolvido sob medida para a psicóloga Louriedna Costa Pereira (CRP 03/29434).",
+    "publisher": "André Felipe",
+    "copyright": "Copyright © 2026 André Felipe. Todos os direitos reservados.",
+    "shortDescription": "LotusPsi — Sistema de Gestão Clínica e Prontuário",
+    "longDescription": "Sistema desktop 100% offline de gestão clínica para profissionais de psicologia.",
     "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico",

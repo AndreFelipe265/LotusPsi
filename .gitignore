@@ -22,10 +22,14 @@ Thumbs.db
 *.log
 
 # Arquivos de dados e backups (bloqueia vazamento acidental de dados de pacientes)
+Documentos/
 *.sqlite
 *.sqlite3
 *.db
 *.lcbackup
+*.lotusbackup
+vault.json
+*-dados/
 *.xlsx
 *.xls
 *.parquet

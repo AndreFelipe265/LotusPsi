@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logoLc from "../assets/logo-lc.svg";
+import logoLotusPsi from "../assets/logo-lotuspsi.svg";
 import { authSetup, extrairErroApi } from "../lib/api";
 import { calcularForcaSenha } from "../lib/format";
 
@@ -79,8 +79,8 @@ export function PrimeiroAcesso({ aoConcluir }: PrimeiroAcessoProps) {
         <div className="max-w-xl w-full bg-fundo-claro border border-rosa-claro rounded-2xl shadow-sm p-8 space-y-6">
           <div className="flex flex-col items-center text-center space-y-2">
             <img
-              src={logoLc}
-              alt="Logo LC — Louriedna Costa Pereira"
+              src={logoLotusPsi}
+              alt="Logo LotusPsi"
               className="w-24 h-auto select-none"
             />
             <h1 className="text-2xl font-bold text-malva">
@@ -167,15 +167,15 @@ export function PrimeiroAcesso({ aoConcluir }: PrimeiroAcessoProps) {
       <div className="max-w-xl w-full bg-fundo-claro border border-rosa-claro rounded-2xl shadow-sm p-8 space-y-6">
         <div className="flex flex-col items-center text-center space-y-2">
           <img
-            src={logoLc}
-            alt="Logo LC — Louriedna Costa Pereira"
+            src={logoLotusPsi}
+            alt="Logo LotusPsi"
             className="w-28 h-auto select-none"
           />
           <h1 className="text-2xl font-bold text-malva">
-            Bem-vinda ao LC Pacientes
+            Bem-vinda ao LotusPsi
           </h1>
           <p className="text-base text-lilas-acinzentado">
-            Louriedna Costa Pereira — Psicóloga · CRP 03/29434
+            Psicóloga Clínica · CRP 00/00000
           </p>
           <p className="text-base text-texto pt-1">
             Este é o seu primeiro acesso. Crie uma senha mestra para proteger os

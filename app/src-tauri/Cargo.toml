@@ -1,12 +1,12 @@
 [package]
-name = "lc-pacientes"
+name = "lotuspsi"
 version = "0.1.0"
-description = "Sistema de Pacientes e Documentos — Louriedna Costa Pereira"
-authors = ["Felipe"]
+description = "LotusPsi — Sistema de Gestão Clínica e Prontuário"
+authors = ["André Felipe"]
 edition = "2021"
 
 [lib]
-name = "lc_pacientes_lib"
+name = "lotuspsi_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

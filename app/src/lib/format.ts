@@ -38,7 +38,7 @@ export function obterSaudacaoHorario(
  * Lista fixa de mensagens de boas-vindas do MVP (RN61).
  */
 export const MENSAGENS_BOAS_VINDAS: readonly string[] = [
-  "Eu te amo, mãe! ❤️",
+  "Desejamos um excelente dia de atendimentos! ✨",
   "Que seu dia seja leve e cheio de bons encontros.",
   "Respire fundo: hoje vai ser um bom dia.",
   "Obrigado por cuidar de tantas pessoas com tanto carinho.",
@@ -60,7 +60,7 @@ export const CHAVE_CONFIG_MENSAGEM_ANIVERSARIO = "mensagem_aniversario";
 export const CHAVE_CONFIG_ULTIMO_BACKUP = "ultimo_backup";
 
 export const MENSAGEM_ANIVERSARIO_PADRAO =
-  "Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço, Louriedna.";
+  "Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço!";
 
 export function extrairPrimeiroNome(nomeCompleto: string): string {
   const primeiro = nomeCompleto.trim().split(/\s+/)[0];
@@ -712,7 +712,7 @@ export function lerArquivoComoBase64(arquivo: File): Promise<string> {
 
 /**
  * Gera o nome sugerido para o arquivo de backup conforme RN51:
- * `backup-pacientes-AAAA-MM-DD-HHmm.lcbackup`.
+ * `backup-pacientes-AAAA-MM-DD-HHmm.lotusbackup`.
  */
 export function gerarNomeBackupSugerido(referencia: Date = new Date()): string {
   const ano = referencia.getFullYear();
@@ -720,7 +720,7 @@ export function gerarNomeBackupSugerido(referencia: Date = new Date()): string {
   const dia = String(referencia.getDate()).padStart(2, "0");
   const hora = String(referencia.getHours()).padStart(2, "0");
   const min = String(referencia.getMinutes()).padStart(2, "0");
-  return `backup-pacientes-${ano}-${mes}-${dia}-${hora}${min}.lcbackup`;
+  return `backup-pacientes-${ano}-${mes}-${dia}-${hora}${min}.lotusbackup`;
 }
 
 /**

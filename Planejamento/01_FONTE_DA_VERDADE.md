@@ -15,24 +15,23 @@
 
 | Item | Valor |
 |---|---|
-| Usuária única | **Louriedna Costa Pereira**, Psicóloga, CRP 03/29434 |
-| Desenvolvedor | Felipe (filho da usuária) |
+| Usuária única | Psicóloga Clínica (CRP 00/00000) |
+| Desenvolvedor | André Felipe |
 | Tipo de aplicação | **Programa desktop local, 100% offline** |
 | Computador | De uso exclusivo da usuária, com um único usuário |
 | Público atendido | Todas as faixas etárias (crianças, adolescentes e adultos) |
 | Idioma | Português do Brasil (interface, mensagens e datas no formato dd/mm/aaaa) |
 
-**Fontes originais**, já incorporadas a este documento:
-- Áudios transcritos da usuária (`WhatsApp-Ptt-*.pdf`)
-- Respostas do formulário (`Questionário — ... .csv`)
-- Identidade visual (`LC_apresentação_cubo.pdf`)
-- Documento de requisitos inicial
+**Fontes originais de levantamento de requisitos**, já consolidadas neste documento:
+- Entrevistas clínicas estruturadas com a profissional
+- Questionário de requisitos clínicos e de usabilidade
+- Documento de especificações inicial
 
-**Palavras da usuária (áudios):**
-- *"um programinha para o computador"*
-- *"lugarzinho dos documentos… para eu baixar e preencher"*
-- *"no íconezinho desse paciente, está tudo dele lá"*
-- *"a cada dia pode ser pequenininho… umas quatro linhas, no máximo cinco… e a data, só"*
+**Necessidades essenciais da rotina clínica:**
+- *"um programinha leve para o computador"*
+- *"lugarzinho dos documentos para eu baixar e preencher"*
+- *"no ícone desse paciente, ter tudo dele registrado"*
+- *"registro rápido a cada dia: cerca de quatro linhas e a data"*
 
 ---
 
@@ -48,7 +47,7 @@
 7. Configurações: trocar senha, backup/restauração e informações de segurança.
 
 ### 2.1.1 Pedidos de 02/11/2026 (feedback do instalador provisório — boas-vindas e agenda na fase F4.5, logo após a F4; anamnese na F6)
-8. **Mensagens de boas-vindas personalizadas** que mudam a cada login, incluindo *"Eu te amo, mãe"* (RN60–RN62).
+8. **Mensagens de boas-vindas personalizadas** que mudam a cada login (RN60–RN62).
 9. **Anamnese anexada ao paciente:** seção no perfil, entre o cabeçalho com o nome e o histórico de sessões (RN65–RN69).
 10. **Agenda (calendário de sessões):** registrar o dia e o horário de cada sessão marcada (RN70–RN77).
 
@@ -179,7 +178,7 @@
   - Se houver telefone/WhatsApp, mostra o botão **"Enviar parabéns no WhatsApp"**.
   - O botão abre `https://wa.me/55<numero>?text=<mensagem>` no navegador padrão. Esta é a **única** abertura de link externo permitida, e só acontece com um clique da usuária.
 - **RN32** — Mensagem padrão editável em Configurações. Padrão:
-  > *"Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço, Louriedna."*
+  > *"Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço!"*
 - **RN33** — Nascidos em 29/02: em anos não bissextos, aparecem em 28/02.
 - **RN34** — Também mostrar "Próximos aniversários (7 dias)" em uma lista recolhível.
 
@@ -203,9 +202,9 @@
 
 ### 5.6 Backup e restauração
 - **RN50** — Botão **"Fazer backup agora"** no painel inicial e em Configurações.
-- **RN51** — O backup é um único arquivo `.lcbackup` contendo banco + documentos, criptografado.
+- **RN51** — O backup é um único arquivo `.lotusbackup` contendo banco + documentos, criptografado.
   - A usuária escolhe onde salvar (pendrive, pasta do Google Drive etc.).
-  - Nome sugerido: `backup-pacientes-AAAA-MM-DD-HHmm.lcbackup`.
+  - Nome sugerido: `backup-pacientes-AAAA-MM-DD-HHmm.lotusbackup`.
 - **RN52** — O backup é aberto com a **mesma senha** ou com a **chave de recuperação**.
 - **RN53** — O painel mostra a data do último backup.
   - Se passar de **7 dias**, mostra um lembrete amigável (sem bloquear nada).
@@ -220,7 +219,7 @@
 ### 5.7 Mensagens de boas-vindas
 - **RN60** — A cada login bem-sucedido, o sistema consome uma mensagem de boas-vindas a partir de uma lista aleatória com todas as frases embaralhadas, salva em memória/banco (`config`). Quando terminar de passar por toda a lista (após exibir todas as frases uma vez), no próximo login é criada outra lista aleatória embaralhada, garantindo que a primeira frase dessa nova lista seja diferente da última frase da lista passada.
 - **RN61** — A lista de mensagens de boas-vindas rotativas contém 9 mensagens embutidas no app:
-  - *"Eu te amo, mãe! ❤️"*
+  - *"Desejamos um excelente dia de atendimentos! ✨"*
   - *"Que seu dia seja leve e cheio de bons encontros."*
   - *"Respire fundo: hoje vai ser um bom dia."*
   - *"Obrigado por cuidar de tantas pessoas com tanto carinho."*
@@ -255,7 +254,7 @@
 - **RN83** — **Resumo mensal:** na tela T12, seletor de mês/ano (com botões "Mês anterior", "Mês atual" e "Próximo mês") exibindo três cards consolidados do mês selecionado: **Total de Entradas**, **Total de Gastos** e **Saldo do Mês** (`entradas - gastos`), além da contagem de lançamentos.
 - **RN84** — Lista de lançamentos do mês selecionado em ordem cronológica decrescente (`data DESC, criado_em DESC`), com filtro por tipo (`Todos` | `Entradas` | `Gastos`) e busca por descrição ou nome do paciente.
 - **RN85** — Permitir criar, editar e excluir (com confirmação) qualquer lançamento financeiro.
-- **RN86** — Os lançamentos financeiros fazem parte do banco SQLCipher e são incluídos automaticamente no backup `.lcbackup` (RN56).
+- **RN86** — Os lançamentos financeiros fazem parte do banco SQLCipher e são incluídos automaticamente no backup `.lotusbackup` (RN56).
 
 ### 5.11 Grade semanal de horários fixos (Fase 2 — F9)
 - **RN90** — Permite cadastrar os **horários semanais fixos** de cada paciente na tabela `horarios_semanais`.
@@ -420,12 +419,12 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 - **Arquivos de documentos:**
   - `docs/<uuid>.bin` = nonce (24B) + ciphertext.
   - Arquivos grandes em blocos (STREAM) para não estourar a memória.
-- **Backup `.lcbackup`:**
+- **Backup `.lotusbackup`:**
   - Cabeçalho com magic bytes e versão, mais cópia do `vault.json`.
   - Payload: tar/zip (banco + docs) cifrado com a DEK.
 - **Pasta de dados:**
-  - Windows: `%APPDATA%\LC Pacientes\`
-  - Linux: `~/.local/share/lc-pacientes/`
+  - Windows: `%APPDATA%\LotusPsi\`
+  - Linux: `~/.local/share/lotuspsi/`
 - **Temporários de "Abrir documento":** em subpasta própria, limpos ao bloquear, ao sair e ao iniciar.
 - **Proibido:**
   - Senha, DEK ou dados de paciente em logs.
@@ -494,7 +493,7 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 | 01/11/2026 | Financeiro e agenda ficam para a Fase 2 | Campo livre 7.2 + prioridade 7.1 |
 | 01/11/2026 | Stack Tauri 2 + React + SQLCipher | Offline, leve, segura, instalador único |
 | 01/11/2026 | Resumo com limite de 600 caracteres | Tradução de "4–5 linhas" |
-| 02/11/2026 | Mensagens de boas-vindas rotativas a cada login, incluindo "Eu te amo, mãe" (RN60–RN62) | Pedido do desenvolvedor |
+| 02/11/2026 | Mensagens de boas-vindas rotativas a cada login (RN60–RN62) | Pedido do desenvolvedor |
 | 02/11/2026 | Anexo de anamnese ao paciente entra no escopo (só arquivo, sem formulário), seção entre o nome e o histórico (RN65–RN69) | Pedido da usuária; revoga a exclusão anterior. Fica na F6 (reaproveita a criptografia de arquivos) |
 | 02/11/2026 | Agenda (data + horário das sessões) antecipada da Fase 2 para a F4.5 (RN70–RN77) | Pedido da usuária |
 | 03/11/2026 | Atualização das mensagens rotativas de boas-vindas: fixadas 9 mensagens personalizadas e remoção das não listadas (RN61) | Pedido da usuária |

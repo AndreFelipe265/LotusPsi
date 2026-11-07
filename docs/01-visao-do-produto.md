@@ -2,8 +2,8 @@
 
 **Projeto:** Sistema de Pacientes e Documentos (LC Consultório)  
 **Versão:** 1.1 — 02/11/2026  
-**Usuária Principal:** Louriedna Costa Pereira, Psicóloga Clínica, CRP 03/29434  
-**Desenvolvedor:** Felipe  
+**Usuária Principal:** Psicóloga Clínica (CRP 00/00000)  
+**Desenvolvedor:** André Felipe  
 
 ---
 
@@ -25,7 +25,7 @@ e garante sigilo profissional absoluto por meio de criptografia forte em repouso
 
 ## 2. A Usuária e o Ambiente de Uso
 
-- **Perfil:** Louriedna Costa Pereira, psicóloga clínica com atendimento presencial a crianças, adolescentes e adultos.
+- **Perfil:** Psicóloga clínica com atendimento presencial a crianças, adolescentes e adultos.
 - **Hardware:** Computador pessoal dedicado no consultório (Windows 10/11).
 - **Rotina Clínica:** Registro conciso ao final de cada atendimento (data + 4 a 5 linhas de resumo), consulta rápida ao
   histórico anterior antes do início da sessão e envio ocasional de mensagens de felicitações a aniversariantes.

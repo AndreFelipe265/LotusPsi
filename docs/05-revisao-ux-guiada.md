@@ -1,7 +1,7 @@
 # Roteiro e Registro de Revisão de UX (F8-T2)
 
-> **Documento de validação de usabilidade com a usuária:** Louriedna Costa Pereira (CRP 03/29434)  
-> **Condução:** Felipe (Desenvolvedor)  
+> **Documento de validação de usabilidade clínica**  
+> **Condução:** André Felipe (Desenvolvedor)  
 > **Referência:** `Planejamento/01_FONTE_DA_VERDADE.md` (Seção 4) e `Planejamento/03_ROADMAP.md` (Fase F8)
 
 ---
@@ -23,13 +23,13 @@
 
 | # | Cenário Clínico | Ações Executadas | Resultado Observado | Status |
 |---|---|---|---|:---:|
-| **C1** | Primeiro acesso e Login | Abertura do app, digitação de senha mestra, geração/impressão da chave de recuperação de 24 caracteres e login subsequente. | Mensagem de boas-vindas rotativa exibida com carinho; saudação adequada por horário ("Boa tarde, Louriedna"); navegação imediata. | **Aprovado** |
+| **C1** | Primeiro acesso e Login | Abertura do app, digitação de senha mestra, geração/impressão da chave de recuperação de 24 caracteres e login subsequente. | Mensagem de boas-vindas rotativa exibida com carinho; saudação adequada por horário ("Boa tarde!"); navegação imediata. | **Aprovado** |
 | **C2** | Consulta e Cadastro de Pacientes | Busca instantânea por paciente digitando sem acento ("joao" para "João"), visualização de telefone e idade calculada; abertura do form T06. | Encontro imediato em < 100 ms; campos agrupados com clareza; menores de 18 anos recebem destaque nos campos de responsável legal. | **Aprovado** |
 | **C3** | Registro rápido de Sessão | Clique em "Registrar sessão" no painel, seleção rápida do paciente, preenchimento do resumo de até 600 caracteres com contador dinâmico. | Contador visual 0/600 claro; bloqueio temporário por inatividade preserva o texto digitado intacto após desbloqueio. | **Aprovado** |
 | **C4** | Agenda Semanal e Conflitos | Navegação para Agenda (T11), visualização da semana, criação de agendamento e teste de conflito de horários. | Aviso amigável de conflito sem travar o agendamento; integração imediata com "Sessões de hoje" no Painel Inicial. | **Aprovado** |
 | **C5** | Documentos e Anamnese | Envio de PDF de ficha de anamnese no perfil do paciente (T07) e documentos gerais organizados por categorias em T09. | Envio rápido por botão ou arrastar-e-soltar; arquivos cifrados no disco; abertura no visualizador padrão sem falhas. | **Aprovado** |
 | **C6** | Aniversariantes e WhatsApp | Verificação dos aniversariantes do dia (incluindo inativos) e dos próximos 7 dias no painel; clique para parabenizar. | Abertura do WhatsApp no navegador apenas ao clicar no botão, com mensagem personalizada preenchida com o primeiro nome. | **Aprovado** |
-| **C7** | Cópia de Segurança (Backup) e Configurações | Geração de backup manual `.lcbackup`, conferência de lembrete de 7 dias, teste de inspeção de arquivo e troca de senha em T10. | Arquivo verificado com sucesso; inspeção exibe contagens corretas; troca de senha exige senha atual e valida 8 caracteres. | **Aprovado** |
+| **C7** | Cópia de Segurança (Backup) e Configurações | Geração de backup manual `.lotusbackup`, conferência de lembrete de 7 dias, teste de inspeção de arquivo e troca de senha em T10. | Arquivo verificado com sucesso; inspeção exibe contagens corretas; troca de senha exige senha atual e valida 8 caracteres. | **Aprovado** |
 
 ---
 

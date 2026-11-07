@@ -19,7 +19,7 @@
 | **RF07** | Agendar sessões em grade semanal e mensal com aviso visual de horários conflitantes | Agenda | Alta |
 | **RF08** | Anexar arquivos de ficha de anamnese cifrados diretamente no perfil do paciente | Anamnese / Arquivos | Alta |
 | **RF09** | Armazenar e organizar documentos gerais em categorias com abertura segura | Documentos | Média |
-| **RF10** | Gerar arquivo de backup `.lcbackup` criptografado e restaurar dados com salvaguarda prévia | Backup | Alta |
+| **RF10** | Gerar arquivo de backup `.lotusbackup` criptografado e restaurar dados com salvaguarda prévia | Backup | Alta |
 | **RF11** | Registrar entradas e gastos financeiros com vínculo opcional ao paciente e resumo mensal consolidado | Financeiro | Média |
 | **RF12** | Gerenciar grade semanal de horários fixos por paciente e aplicar horários na agenda da semana | Grade Semanal | Média |
 
@@ -36,8 +36,8 @@
 | **RNF05** | **Tempo de Resposta Local** | Respostas de comandos IPC locais em menos de 100 ms para consultas rotineiras. |
 | **RNF06** | **Acessibilidade e Ergonomia Visual** | Contraste mínimo WCAG AA (>= 4.5:1); fontes base com tamanho mínimo de 16px. |
 | **RNF07** | **Segurança de Memória** | Buffers com senhas e chaves criptográficas zerados após descarte via trait `Zeroize`. |
-| **RNF08** | **Integridade de Backup** | Verificação SHA-256 e teste de abertura do arquivo `.lcbackup` logo após a gravação. |
-
+| **RNF08** | **Integridade de Backup** | Verificação SHA-256 e teste de abertura do arquivo `.lotusbackup` logo após a gravação. |
+ 
 ---
 
 ## 3. Índice das Regras de Negócio (RN01 a RN95)
@@ -50,7 +50,7 @@ As regras de negócio detalhadas, seus critérios de precedência e exceções e
 - **RN20 a RN26:** Registro, edição, exclusão e visualização de sessões clínicas.
 - **RN30 a RN34:** Lógica de aniversariantes (hoje + 7 dias, tratamento de 29/02 e atalho WhatsApp).
 - **RN40 a RN47:** Gestão de categorias, upload, armazenamento e visualização de documentos.
-- **RN50 a RN56:** Formato `.lcbackup`, salvaguarda prévia na restauração e integridade de backups.
+- **RN50 a RN56:** Formato `.lotusbackup`, salvaguarda prévia na restauração e integridade de backups.
 - **RN60 a RN62:** Mensagens rotativas de boas-vindas a cada login.
 - **RN65 a RN69:** Anexo e consulta de arquivos de anamnese no perfil.
 - **RN70 a RN77:** Agendamento de sessões, visualização semanal/mensal e detecção de conflitos de horários.

@@ -21,12 +21,11 @@ pub const CHAVE_CONFIG_ULTIMO_BACKUP: &str = "ultimo_backup";
 
 /// Mensagem padrão de aniversário quando ainda não foi personalizada pela usuária (RN32).
 pub const MENSAGEM_ANIVERSARIO_PADRAO: &str =
-    "Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço, Louriedna.";
+    "Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço!";
 
 /// Lista fixa de mensagens de boas-vindas do MVP (RN61).
-/// Inclui obrigatoriamente "Eu te amo, mãe! ❤️".
 pub const MENSAGENS_BOAS_VINDAS: [&str; 9] = [
-    "Eu te amo, mãe! ❤️",
+    "Desejamos um excelente dia de atendimentos! ✨",
     "Que seu dia seja leve e cheio de bons encontros.",
     "Respire fundo: hoje vai ser um bom dia.",
     "Obrigado por cuidar de tantas pessoas com tanto carinho.",
@@ -276,9 +275,9 @@ mod tests {
     use uuid::Uuid;
 
     #[test]
-    fn lista_boas_vindas_inclui_eu_te_amo_mae_e_demais_mensagens_rn61() {
+    fn lista_boas_vindas_inclui_mensagens_acolhedoras_rn61() {
         assert_eq!(MENSAGENS_BOAS_VINDAS.len(), 9);
-        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Eu te amo, mãe! ❤️"));
+        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Desejamos um excelente dia de atendimentos! ✨"));
         assert!(MENSAGENS_BOAS_VINDAS.contains(&"Que seu dia seja leve e cheio de bons encontros."));
         assert!(MENSAGENS_BOAS_VINDAS.contains(&"Respire fundo: hoje vai ser um bom dia."));
         assert!(MENSAGENS_BOAS_VINDAS

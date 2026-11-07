@@ -8,8 +8,8 @@
 ![Ambiente](https://img.shields.io/badge/Ambiente-100%25%20Offline-success)
 ![Criptografia](https://img.shields.io/badge/SQLCipher-XChaCha20-blueviolet)
 
-Software desktop sob medida de gestão clínica e prontuário eletrônico desenvolvido para a psicóloga
-**Louriedna Costa Pereira** (CRP 03/29434).
+Software desktop de gestão clínica e prontuário eletrônico desenvolvido para profissionais
+de psicologia clínica.
 
 ---
 
@@ -43,7 +43,7 @@ Toda a informação clínica permanece estritamente na máquina da psicóloga, p
   - Derivação de chaves via **Argon2id** e cofre de anexos com **XChaCha20-Poly1305**.
   - Bloqueio automático por inatividade após 30 minutos sem interação.
   - Chave de recuperação física de emergência (24 caracteres Crockford Base32) impressa em papel para recuperação de senha.
-- 💾 **Backup Criptografado com 1 Clique:** Exportação de arquivo `.lcbackup` empacotado e assinado, com verificação de integridade antes da restauração.
+- 💾 **Backup Criptografado com 1 Clique:** Exportação de arquivo `.lotusbackup` empacotado e assinado, com verificação de integridade antes da restauração.
 
 ---
 
@@ -192,11 +192,11 @@ Para testar o envio de documentos, validação de tipos e anexos de anamnese sem
 | Participante | Papel | Atribuição |
 |---|---|---|
 | **André Felipe** ([@AndreFelipe265](https://github.com/AndreFelipe265)) | Desenvolvedor Principal | Arquitetura de software, backend Rust, frontend React e segurança |
-| **Louriedna Costa Pereira** (CRP 03/29434) | Usuária Final e Especialista Clínica | Definição de requisitos, validação do fluxo clínico e aceite de uso |
+| **Especialista Clínica** | Consultoria Clínica | Definição de requisitos, validação do fluxo clínico e aceite de uso |
 
 ---
 
 ## Licença e Direitos
 
-Copyright (c) 2026 André Felipe / Louriedna Costa Pereira. Todos os direitos reservados.  
-Software proprietário desenvolvido para uso pessoal e profissional exclusivo da psicóloga Louriedna Costa Pereira (CRP 03/29434).
+Copyright (c) 2026 André Felipe. Todos os direitos reservados.  
+Software desenvolvido para gestão clínica e consultório de psicologia.

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    lc_pacientes_lib::run()
+    lotuspsi_lib::run()
 }

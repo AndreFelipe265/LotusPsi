@@ -89,7 +89,7 @@ flowchart LR
 ## F4.5 — Pedidos de 02/11/2026: boas-vindas e agenda (RN60–RN62, RN70–RN77, T04, T07, T11)
 > Executar **logo após a F4**, antes da F5. A anamnese entrou na F6 porque reaproveita a criptografia de arquivos (F6-T1).
 
-- [x] **F4.5-T1** Boas-vindas rotativas: lista de mensagens (com "Eu te amo, mãe! ❤️"), sorteio sem repetir a anterior, exibição no painel (RN60–RN62). Testes. (`9ac1e59`)
+- [x] **F4.5-T1** Boas-vindas rotativas: lista de mensagens acolhedoras, sorteio sem repetir a anterior, exibição no painel (RN60–RN62). Testes. (`9ac1e59`)
 - [x] **F4.5-T2** Agenda — backend: migração `agendamentos`, CRUD, consulta por intervalo, detecção de conflito (RN70–RN74). Testes. (`ff5e8a5`)
 - [x] **F4.5-T3** Agenda — tela T11 (semana/mês) e item "Agenda" no menu. (`7b45418`)
 - [x] **F4.5-T4** Integrações: "Sessões de hoje" no painel, próximo agendamento no perfil, "Registrar sessão" a partir do agendamento (RN75–RN77). (`fa14156`)
@@ -114,7 +114,7 @@ flowchart LR
 **Aceite:** enviar PDF e DOCX, baixar idêntico (sha256 igual), arquivo em disco ilegível, rejeitar `.exe` renomeado para `.pdf`; anexar e abrir um PDF de anamnese no perfil do paciente.
 
 ## F7 — Backup e restauração (RN50–RN55)
-- [x] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL, inclui agendamentos) + docs + anexos de anamnese (RN56) + vault → `.lcbackup` cifrado, com verificação pós-gravação.
+- [x] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL, inclui agendamentos) + docs + anexos de anamnese (RN56) + vault → `.lotusbackup` cifrado, com verificação pós-gravação.
 - [x] **F7-T2** Inspecionar e restaurar, com cópia automática prévia dos dados atuais.
 - [x] **F7-T3** Interface: botão no painel e em Configurações, data do último backup e lembrete após 7 dias.
 - [x] **F7-T4** Escrever um guia de 1 página para a usuária: "Como fazer backup e restaurar" (`docs/guia-backup.md` → PDF).

@@ -390,7 +390,7 @@ mod tests {
         let paciente = executar_paciente_criar(
             &state,
             &DadosPacienteInput {
-                nome: "Mariana Costa".to_string(),
+                nome: "Mariana Oliveira".to_string(),
                 ..Default::default()
             },
         )

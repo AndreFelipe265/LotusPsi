@@ -63,7 +63,7 @@ where
         let pasta_temp = caminho_pasta_temporarios(data_dir);
         fs::create_dir_all(&pasta_temp)?;
         let caminho_staging = pasta_temp.join(format!(
-            "backup_staging_{}.lcbackup",
+            "backup_staging_{}.lotusbackup",
             &uuid::Uuid::new_v4().to_string()[..8]
         ));
         let res_write = fs::write(&caminho_staging, &bytes);
@@ -78,7 +78,7 @@ where
     let limpo = caminho.trim();
     if limpo.is_empty() {
         return Err(Erro::Validacao(
-            "Selecione um arquivo de backup (.lcbackup).".to_string(),
+            "Selecione um arquivo de backup (.lotusbackup).".to_string(),
         ));
     }
 
@@ -194,11 +194,11 @@ pub async fn backup_selecionar_destino(
     };
 
     let mut dialog = rfd::AsyncFileDialog::new()
-        .set_title("Escolher onde salvar a cópia de segurança (.lcbackup)")
+        .set_title("Escolher onde salvar a cópia de segurança (.lotusbackup)")
         .set_file_name(&nome_arquivo)
         .add_filter(
-            "Cópia de Segurança LC Pacientes (*.lcbackup)",
-            &["lcbackup"],
+            "Cópia de Segurança LotusPsi (*.lotusbackup)",
+            &["lotusbackup", "lcbackup"],
         );
 
     if let Some(ref dir) = dir_inicial {
@@ -284,12 +284,12 @@ mod tests {
         ));
 
         // Desbloqueado retorna caminho .lcbackup
-        executar_auth_setup_com_params(&state, "SenhaMestraLouriedna2026", params_argon_rapido())
+        executar_auth_setup_com_params(&state, "SenhaMestraSegura2026", params_argon_rapido())
             .expect("setup inicial");
 
         let caminho_padrao =
             executar_backup_obter_caminho_padrao(&state).expect("obter caminho padrão");
-        assert!(caminho_padrao.ends_with(".lcbackup"));
+        assert!(caminho_padrao.ends_with(".lotusbackup"));
         assert!(caminho_padrao.contains("backup-pacientes-"));
     }
 
@@ -303,7 +303,7 @@ mod tests {
         let state = AppState::new(data_dir.clone());
         let setup = executar_auth_setup_com_params(
             &state,
-            "SenhaMestraLouriedna2026",
+            "SenhaMestraSegura2026",
             params_argon_rapido(),
         )
         .expect("setup inicial");
@@ -402,12 +402,12 @@ mod tests {
         )
         .expect("anexar anamnese");
 
-        // 2. Faz o backup (.lcbackup) para a pasta externa
+        // 2. Faz o backup (.lotusbackup) para a pasta externa
         let criado = executar_backup_criar(&state, Some(&pasta_externa.to_string_lossy()))
             .expect("backup_criar");
         assert!(criado.verificado);
         assert!(criado.nome_arquivo.starts_with("backup-pacientes-"));
-        assert!(criado.nome_arquivo.ends_with(".lcbackup"));
+        assert!(criado.nome_arquivo.ends_with(".lotusbackup"));
         assert_eq!(criado.n_pacientes, 1);
         assert_eq!(criado.n_documentos, 1);
         assert_eq!(criado.n_anamneses, 1);
@@ -424,7 +424,7 @@ mod tests {
         let inspecao_senha = executar_backup_inspecionar(
             &state,
             &criado.caminho_arquivo,
-            "SenhaMestraLouriedna2026",
+            "SenhaMestraSegura2026",
             None,
         )
         .expect("inspecionar com senha");
@@ -558,7 +558,7 @@ mod tests {
         let restaurado_sobre_existente = executar_backup_restaurar(
             &state,
             &criado.caminho_arquivo,
-            "SenhaMestraLouriedna2026",
+            "SenhaMestraSegura2026",
             None,
         )
         .expect("restaurar sobre dados existentes");
@@ -580,7 +580,7 @@ mod tests {
         let inspecao_copia_previa = executar_backup_inspecionar(
             &state,
             &caminho_copia_previa,
-            "SenhaMestraLouriedna2026",
+            "SenhaMestraSegura2026",
             None,
         )
         .expect("inspecionar cópia automática prévia");
@@ -588,7 +588,7 @@ mod tests {
 
         // Verifica também que bloquear e logar novamente com a senha mestra funciona normalmente
         executar_auth_lock(&state).expect("lock pos restauracao");
-        executar_auth_login(&state, "SenhaMestraLouriedna2026", 1_700_000_500)
+        executar_auth_login(&state, "SenhaMestraSegura2026", 1_700_000_500)
             .expect("login pos restauracao");
 
         let _ = fs::remove_dir_all(&dir_base);

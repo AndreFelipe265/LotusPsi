@@ -30,10 +30,10 @@ describe("Segurança do Tauri (F0-T2)", () => {
     expect(mainWindow.devtools).toBe(false);
   });
 
-  it("configura identidade visual, nome LC Pacientes e assets de ícones para janela e barra de tarefas (F8-T4)", () => {
-    expect(tauriConfig.productName).toBe("LC Pacientes");
+  it("configura identidade visual, nome LotusPsi e assets de ícones para janela e barra de tarefas (F8-T4)", () => {
+    expect(tauriConfig.productName).toBe("LotusPsi");
     const mainWindow = tauriConfig.app?.windows?.[0];
-    expect(mainWindow?.title).toBe("LC Pacientes");
+    expect(mainWindow?.title).toBe("LotusPsi");
 
     const icones = tauriConfig.bundle?.icon;
     expect(icones).toBeDefined();

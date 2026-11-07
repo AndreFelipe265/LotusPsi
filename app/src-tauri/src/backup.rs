@@ -26,8 +26,11 @@ use crate::files::{
 use crate::state::Key;
 use crate::vault::{caminho_vault, carregar_vault, salvar_vault_atomico, vault_existe, Vault};
 
-/// Magic bytes do cabeçalho externo do arquivo `.lcbackup` (Seção 7).
-pub const MAGIC_BACKUP: &[u8; 8] = b"LCBACKUP";
+/// Magic bytes do cabeçalho externo do arquivo `.lotusbackup` (Seção 7).
+pub const MAGIC_BACKUP: &[u8; 8] = b"LOTUSBKP";
+
+/// Magic bytes legados para compatibilidade com versões anteriores (`.lcbackup`).
+pub const MAGIC_BACKUP_LEGACY: &[u8; 8] = b"LCBACKUP";
 
 /// Versão atual do formato binário `.lcbackup` (Seção 7).
 pub const VERSAO_FORMATO_BACKUP: u32 = 1;
@@ -122,19 +125,19 @@ pub struct ResultadoBackupRestaurado {
 }
 
 /// Gera o nome sugerido para o arquivo de backup conforme RN51:
-/// `backup-pacientes-AAAA-MM-DD-HHmm.lcbackup`.
+/// `backup-pacientes-AAAA-MM-DD-HHmm.lotusbackup`.
 pub fn gerar_nome_backup_sugerido(instante: DateTime<Local>) -> String {
     format!(
-        "backup-pacientes-{}.lcbackup",
+        "backup-pacientes-{}.lotusbackup",
         instante.format("%Y-%m-%d-%H%M")
     )
 }
 
-/// Resolve o caminho final onde o arquivo `.lcbackup` será gravado (RN51):
+/// Resolve o caminho final onde o arquivo `.lotusbackup` será gravado (RN51):
 /// - Se `caminho_destino` estiver vazio, usa a pasta `Downloads` da usuária (ou `data_dir/backups`)
-///   com o nome sugerido `backup-pacientes-AAAA-MM-DD-HHmm.lcbackup`.
+///   com o nome sugerido `backup-pacientes-AAAA-MM-DD-HHmm.lotusbackup`.
 /// - Se `caminho_destino` for uma pasta existente, concatena o nome sugerido.
-/// - Se `caminho_destino` for um caminho de arquivo sem extensão `.lcbackup`, garante o sufixo `.lcbackup`.
+/// - Se `caminho_destino` for um caminho de arquivo sem extensão `.lotusbackup`, garante o sufixo `.lotusbackup`.
 pub fn resolver_caminho_destino_backup(
     data_dir: &Path,
     caminho_destino: &str,
@@ -148,18 +151,18 @@ pub fn resolver_caminho_destino_backup(
         if caminho.is_dir() {
             return caminho.join(nome_sugerido);
         }
-        let tem_ext_lcbackup = caminho
+        let tem_ext_valida = caminho
             .extension()
             .and_then(|e| e.to_str())
-            .map(|e| e.eq_ignore_ascii_case("lcbackup"))
+            .map(|e| e.eq_ignore_ascii_case("lotusbackup") || e.eq_ignore_ascii_case("lcbackup"))
             .unwrap_or(false);
 
-        if tem_ext_lcbackup {
+        if tem_ext_valida {
             return caminho;
         }
 
         let mut com_ext = caminho.into_os_string();
-        com_ext.push(".lcbackup");
+        com_ext.push(".lotusbackup");
         return PathBuf::from(com_ext);
     }
 
@@ -514,17 +517,17 @@ fn listar_arquivos_docs_para_backup(
     Ok(resultado)
 }
 
-/// Lê e valida apenas o cabeçalho externo de um arquivo `.lcbackup`, posicionando o leitor
+/// Lê e valida apenas o cabeçalho externo de um arquivo `.lotusbackup` (ou legado `.lcbackup`), posicionando o leitor
 /// exatamente no início do payload cifrado.
 pub fn ler_cabecalho_backup_de_leitor<R: Read>(leitor: &mut R) -> Resultado<CabecalhoBackup> {
     let mut magic = [0u8; 8];
     leitor.read_exact(&mut magic).map_err(|_| {
-        Erro::Validacao("O arquivo selecionado não é um backup válido (.lcbackup).".to_string())
+        Erro::Validacao("O arquivo selecionado não é um backup válido (.lotusbackup).".to_string())
     })?;
 
-    if &magic != MAGIC_BACKUP {
+    if &magic != MAGIC_BACKUP && &magic != MAGIC_BACKUP_LEGACY {
         return Err(Erro::Validacao(
-            "O arquivo selecionado não é um backup válido (.lcbackup).".to_string(),
+            "O arquivo selecionado não é um backup válido (.lotusbackup).".to_string(),
         ));
     }
 
@@ -756,13 +759,13 @@ fn criar_backup_interno(
     let metadados_json = serde_json::to_vec(&metadados).map_err(|_| Erro::Interno)?;
     let tam_metadados_u32 = u32::try_from(metadados_json.len()).map_err(|_| Erro::Interno)?;
 
-    // 5. Escreve o arquivo temporário `.lcbackup.tmp`
+    // 5. Escreve o arquivo temporário `.lotusbackup.tmp`
     let nome_temp = format!(
         ".{}.tmp",
         caminho_destino
             .file_name()
             .and_then(|n| n.to_str())
-            .unwrap_or("backup.lcbackup")
+            .unwrap_or("backup.lotusbackup")
     );
     let caminho_temp = caminho_destino.with_file_name(nome_temp);
 
@@ -820,7 +823,7 @@ fn criar_backup_interno(
     let nome_arquivo = caminho_destino
         .file_name()
         .and_then(|n| n.to_str())
-        .unwrap_or("backup.lcbackup")
+        .unwrap_or("backup.lotusbackup")
         .to_string();
 
     Ok(ResultadoBackupCriado {
@@ -954,22 +957,22 @@ pub fn criar_copia_seguranca_automatica_previa(
 
     let agora = Local::now();
     let sufixo_unico = &uuid::Uuid::new_v4().to_string()[..8];
-    let nome_lcbackup = format!(
-        "pre-restauracao-{}-{}.lcbackup",
+    let nome_backup = format!(
+        "pre-restauracao-{}-{}.lotusbackup",
         agora.format("%Y-%m-%d-%H%M%S"),
         sufixo_unico
     );
-    let destino_lcbackup = pasta_auto.join(nome_lcbackup);
+    let destino_backup = pasta_auto.join(nome_backup);
 
     if let (Some(conn), Some(dek)) = (conn_atual, dek_atual) {
-        criar_backup_com_instante(data_dir, conn, dek, &destino_lcbackup, agora)?;
-        return Ok(Some(destino_lcbackup));
+        criar_backup_com_instante(data_dir, conn, dek, &destino_backup, agora)?;
+        return Ok(Some(destino_backup));
     }
 
     if let Some(dek) = dek_atual {
         if let Ok(conn_aberta) = abrir_banco(data_dir, dek) {
-            criar_backup_com_instante(data_dir, &conn_aberta, dek, &destino_lcbackup, agora)?;
-            return Ok(Some(destino_lcbackup));
+            criar_backup_com_instante(data_dir, &conn_aberta, dek, &destino_backup, agora)?;
+            return Ok(Some(destino_backup));
         }
     }
 
@@ -1178,7 +1181,7 @@ mod tests {
             .expect("data válida");
         assert_eq!(
             gerar_nome_backup_sugerido(dt),
-            "backup-pacientes-2026-11-06-2015.lcbackup"
+            "backup-pacientes-2026-11-06-2015.lotusbackup"
         );
     }
 
@@ -1280,14 +1283,14 @@ mod tests {
         )
         .expect("anexar anamnese");
 
-        // 4. Gera o arquivo .lcbackup
-        let caminho_backup = dir.join("saida").join("meu-backup.lcbackup");
+        // 4. Gera o arquivo .lotusbackup
+        let caminho_backup = dir.join("saida").join("meu-backup.lotusbackup");
         let resultado = {
             let dek_guard = state.dek.lock().unwrap();
             let conn_guard = state.conn.lock().unwrap();
             let dek = dek_guard.as_ref().unwrap();
             let conn = conn_guard.as_ref().unwrap();
-            criar_backup(&dir, conn, dek, &caminho_backup).expect("criar backup .lcbackup")
+            criar_backup(&dir, conn, dek, &caminho_backup).expect("criar backup .lotusbackup")
         };
 
         assert!(resultado.verificado);
@@ -1328,7 +1331,7 @@ mod tests {
         let mut bytes_corrompidos = bytes_backup;
         let idx_ultimo = bytes_corrompidos.len() - 1;
         bytes_corrompidos[idx_ultimo] ^= 0xFF;
-        let caminho_corrompido = dir.join("saida").join("corrompido.lcbackup");
+        let caminho_corrompido = dir.join("saida").join("corrompido.lotusbackup");
         fs::write(&caminho_corrompido, &bytes_corrompidos).expect("gravar corrompido");
 
         let dek_correta = state.dek.lock().unwrap().clone().unwrap();
@@ -1349,7 +1352,7 @@ mod tests {
         // 1. Primeiro acesso assistido (T01): criação de senha mestra + chave de recuperação (6 grupos de 4 chars)
         let setup = executar_auth_setup_com_params(
             &state,
-            "ConsultorioLouriedna2026",
+            "ConsultorioSeguro2026",
             params_argon_rapido(),
         )
         .expect("setup inicial com senha e chave de recuperação");
@@ -1436,10 +1439,10 @@ mod tests {
         )
         .expect("criar gasto financeiro");
 
-        // 4. Primeiro backup completo (.lcbackup) e inspeção tanto com senha quanto com a chave impressa
+        // 4. Primeiro backup completo (.lotusbackup) e inspeção tanto com senha quanto com a chave impressa
         let caminho_backup = dir_origem
             .join("backups")
-            .join("primeiro-backup-entrega.lcbackup");
+            .join("primeiro-backup-entrega.lotusbackup");
         let criado = {
             let dek_guard = state.dek.lock().unwrap();
             let conn_guard = state.conn.lock().unwrap();
@@ -1500,5 +1503,33 @@ mod tests {
 
         let _ = fs::remove_dir_all(&dir_origem);
         let _ = fs::remove_dir_all(&dir_restaurado);
+    }
+
+    #[test]
+    fn aceita_cabecalho_com_magic_legado_lcbackup() {
+        let dir = pasta_teste();
+        let state = AppState::new(dir.clone());
+        executar_auth_setup_com_params(&state, "SenhaMestraSegura2026", params_argon_rapido())
+            .expect("setup");
+        let vault = carregar_vault(&dir).expect("carregar vault");
+
+        let cabecalho = CabecalhoBackup {
+            versao: VERSAO_FORMATO_BACKUP,
+            criado_em: "2026-11-06T20:00:00Z".to_string(),
+            vault,
+        };
+        let cabecalho_json = serde_json::to_vec(&cabecalho).expect("serializar cabecalho");
+        let tam_u32 = cabecalho_json.len() as u32;
+
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(MAGIC_BACKUP_LEGACY);
+        bytes.extend_from_slice(&VERSAO_FORMATO_BACKUP.to_be_bytes());
+        bytes.extend_from_slice(&tam_u32.to_be_bytes());
+        bytes.extend_from_slice(&cabecalho_json);
+
+        let mut cursor = std::io::Cursor::new(bytes);
+        let cabecalho_lido = ler_cabecalho_backup_de_leitor(&mut cursor).expect("deve aceitar cabeçalho legado");
+        assert_eq!(cabecalho_lido.versao, 1);
+        let _ = fs::remove_dir_all(&dir);
     }
 }

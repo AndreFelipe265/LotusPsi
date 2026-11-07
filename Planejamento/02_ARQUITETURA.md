@@ -10,7 +10,7 @@ flowchart LR
   CMD --> VAULT["vault: senha, DEK, rate-limit"]
   CMD --> DB["db: SQLCipher"]
   CMD --> FILES["files: documentos cifrados"]
-  CMD --> BKP["backup: .lcbackup"]
+  CMD --> BKP["backup: .lotusbackup"]
   VAULT --> STATE["AppState (DEK em memória, zeroize)"]
   DB --> STATE
   FILES --> STATE

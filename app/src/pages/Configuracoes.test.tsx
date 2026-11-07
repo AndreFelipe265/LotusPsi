@@ -41,7 +41,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     // Editar para uma mensagem customizada
     const novaMensagem =
-      "Querida {primeiro_nome}, parabéns pelo seu dia! Com carinho, Louriedna.";
+      "Querida {primeiro_nome}, parabéns pelo seu dia! Com carinho da psicóloga.";
     fireEvent.change(campo, { target: { value: novaMensagem } });
     fireEvent.click(screen.getByRole("button", { name: /Salvar mensagem/i }));
 
@@ -62,7 +62,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
   });
 
   it("carrega mensagem customizada previamente salva em config e formata corretamente o link wa.me (RN31, RN32)", async () => {
-    const msgCustom = "Feliz vida, {primeiro_nome}! Abraço da Louriedna.";
+    const msgCustom = "Feliz vida, {primeiro_nome}! Abraço carinhoso.";
     vi.spyOn(api, "configObter").mockResolvedValue(msgCustom);
 
     render(
@@ -85,11 +85,11 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
       msgCustom,
     );
     expect(url).toBe(
-      "https://wa.me/5571988887777?text=Feliz%20vida%2C%20Beatriz!%20Abra%C3%A7o%20da%20Louriedna.",
+      "https://wa.me/5571988887777?text=Feliz%20vida%2C%20Beatriz!%20Abra%C3%A7o%20carinhoso.",
     );
   });
 
-  it("permite fazer backup agora em Configurações, inspecionar arquivo .lcbackup com senha ou chave de recuperação, ver contagens e restaurar com confirmação (F7-T3 — RN50–RN55)", async () => {
+  it("permite fazer backup agora em Configurações, inspecionar arquivo .lotusbackup com senha ou chave de recuperação, ver contagens e restaurar com confirmação (F7-T3 — RN50–RN55)", async () => {
     const hojeIso = obterDataHojeIso();
     const oitoDiasAtrasIso = `${deslocarDiasIso(hojeIso, -8)}T10:00:00-03:00`;
 
@@ -101,8 +101,8 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     });
 
     const criarBackupSpy = vi.spyOn(api, "backupCriar").mockResolvedValue({
-      caminho_arquivo: "D:/Backups/backup-pacientes-2026-11-06-2000.lcbackup",
-      nome_arquivo: "backup-pacientes-2026-11-06-2000.lcbackup",
+      caminho_arquivo: "D:/Backups/backup-pacientes-2026-11-06-2000.lotusbackup",
+      nome_arquivo: "backup-pacientes-2026-11-06-2000.lotusbackup",
       tamanho: 512000,
       tamanho_bytes: 512000,
       criado_em: `${hojeIso}T20:00:00-03:00`,
@@ -136,7 +136,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
       n_agendamentos: 6,
       n_sessoes: 45,
       caminho_copia_seguranca:
-        "/dados/backups_automaticos/pre-restauracao-2026-11-06-200500.lcbackup",
+        "/dados/backups_automaticos/pre-restauracao-2026-11-06-200500.lotusbackup",
     });
 
     render(
@@ -162,14 +162,14 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     );
     fireEvent.change(inputDestino, {
       target: {
-        value: "D:/Backups/backup-pacientes-2026-11-06-2000.lcbackup",
+        value: "D:/Backups/backup-pacientes-2026-11-06-2000.lotusbackup",
       },
     });
     fireEvent.click(screen.getByTestId("confirmar-salvar-backup-config"));
 
     await waitFor(() => {
       expect(criarBackupSpy).toHaveBeenCalledWith(
-        "D:/Backups/backup-pacientes-2026-11-06-2000.lcbackup",
+        "D:/Backups/backup-pacientes-2026-11-06-2000.lotusbackup",
       );
     });
     expect(
@@ -178,14 +178,14 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     // 3. Inspecionar um backup informando caminho e chave de recuperação (RN52, RN54)
     const inputCaminhoRestaurar = screen.getByLabelText(
-      /Arquivo de backup \(\.lcbackup\)/i,
+      /Arquivo de backup \(\.lotusbackup\)/i,
     );
     const inputSenhaRestaurar = screen.getByLabelText(
       /Senha ou chave de recuperação do backup/i,
     );
 
     fireEvent.change(inputCaminhoRestaurar, {
-      target: { value: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup" },
+      target: { value: "D:/Backups/backup-pacientes-2026-11-05-1830.lotusbackup" },
     });
     fireEvent.change(inputSenhaRestaurar, {
       target: { value: CHAVE_RECUPERACAO_TESTE },
@@ -195,7 +195,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     await waitFor(() => {
       expect(inspecionarSpy).toHaveBeenCalledWith({
-        caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup",
+        caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lotusbackup",
         senha: CHAVE_RECUPERACAO_TESTE,
         conteudo_base64: null,
       });
@@ -234,7 +234,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     await waitFor(() => {
       expect(restaurarSpy).toHaveBeenCalledWith({
-        caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lcbackup",
+        caminho: "D:/Backups/backup-pacientes-2026-11-05-1830.lotusbackup",
         senha: CHAVE_RECUPERACAO_TESTE,
         conteudo_base64: null,
       });
@@ -252,12 +252,12 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     const obterPadraoSpy = vi
       .spyOn(api, "backupObterCaminhoPadrao")
       .mockResolvedValue(
-        "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lcbackup",
+        "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lotusbackup",
       );
     const selecionarDestinoSpy = vi
       .spyOn(api, "backupSelecionarDestino")
       .mockResolvedValue(
-        "/media/felipe/PENDRIVE/backup-pacientes-2026-11-06-2130.lcbackup",
+        "/media/felipe/PENDRIVE/backup-pacientes-2026-11-06-2130.lotusbackup",
       );
 
     render(
@@ -281,7 +281,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
       "campo-caminho-destino-backup-config",
     );
     expect(inputDestino).toHaveValue(
-      "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lcbackup",
+      "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lotusbackup",
     );
 
     // Clicar em "Escolher pasta..." abre a seleção nativa
@@ -292,13 +292,13 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     await waitFor(() => {
       expect(selecionarDestinoSpy).toHaveBeenCalledWith(
-        "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lcbackup",
+        "/home/felipe/Downloads/backup-pacientes-2026-11-06-2130.lotusbackup",
       );
     });
 
     await waitFor(() => {
       expect(inputDestino).toHaveValue(
-        "/media/felipe/PENDRIVE/backup-pacientes-2026-11-06-2130.lcbackup",
+        "/media/felipe/PENDRIVE/backup-pacientes-2026-11-06-2130.lotusbackup",
       );
     });
   });
@@ -510,8 +510,8 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
 
     const secaoSobre = await screen.findByTestId("secao-config-sobre");
     expect(secaoSobre).toBeInTheDocument();
-    expect(secaoSobre).toHaveTextContent("LC Consultório — Sistema de Pacientes e Documentos");
-    expect(secaoSobre).toHaveTextContent("Louriedna Costa Pereira (CRP 03/29434)");
+    expect(secaoSobre).toHaveTextContent("LotusPsi — Sistema de Gestão Clínica e Prontuário");
+    expect(secaoSobre).toHaveTextContent("CRP 00/00000");
     expect(secaoSobre).toHaveTextContent("Versão 0.1.0");
     expect(secaoSobre).toHaveTextContent("100% Offline e Privativo");
     expect(secaoSobre).toHaveTextContent("SQLCipher");

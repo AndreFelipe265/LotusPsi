@@ -17,7 +17,7 @@ Esta pasta contém arquivos fictícios e sintéticos preparados especialmente pa
 - **`Declaracao_de_Comparecimento.txt`**: Teste de envio de documento em texto puro (`.txt`).
 
 ### 📁 `03_Anamneses_Para_Pacientes/`
-- **`Anamnese_Clinica_Mariana_Costa.pdf`**: Vá até o perfil de qualquer paciente cadastrado e anexe este arquivo na seção **Anamnese** (usando o botão "Anexar anamnese" ou arrastando e soltando). Teste as ações **Abrir**, **Baixar** e **Excluir**.
+- **`Anamnese_Clinica_Mariana_Oliveira.pdf`**: Vá até o perfil de qualquer paciente cadastrado e anexe este arquivo na seção **Anamnese** (usando o botão "Anexar anamnese" ou arrastando e soltando). Teste as ações **Abrir**, **Baixar** e **Excluir**.
 - **`Relatorio_Escolar_Anamnese_Lucas.docx`**: Teste de anexo de documento Word (`.docx`) no perfil de paciente infantil.
 
 ### 📁 `04_Imagens/`
