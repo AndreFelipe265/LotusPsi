@@ -4,18 +4,18 @@
 > rode de novo para atualizar.
 
 - **Período:** 2026-11-01 a 2026-11-07
-- **Commits:** 54 (sem contar 0 de merge)
+- **Commits:** 56 (sem contar 0 de merge)
 - **Pull Requests identificados:** 0
-- **Commits com corpo explicando o porquê:** 13 de 54
+- **Commits com corpo explicando o porquê:** 14 de 56
 
 ## Por tipo
 
 | Tipo | Commits |
 |---|--:|
 | `feat` | 29 |
-| `docs` | 14 |
+| `docs` | 15 |
 | `chore` | 6 |
-| `ci` | 2 |
+| `ci` | 3 |
 | `fix` | 2 |
 | `build` | 1 |
 
@@ -24,11 +24,11 @@
 | Semana (segunda-feira) | Commits |
 |---|--:|
 | 26/10/2026 | 10 |
-| 02/11/2026 | 44 |
+| 02/11/2026 | 46 |
 
 ## Por autor
 
 | Autor | Commits |
 |---|--:|
-| André Felipe | 54 |
+| André Felipe | 56 |
 
