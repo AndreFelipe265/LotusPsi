@@ -2,7 +2,7 @@
 
 ## Nosso Modelo de Ameaça e Privacidade
 
-O **Sistema de Pacientes e Documentos (LC Consultório)** lida com prontuários de psicologia clínica,
+O **LotusPsi** lida com prontuários de psicologia clínica,
 exigindo o mais alto nível de confidencialidade médica e privacidade.
 
 Princípios fundamentais do design de segurança:
@@ -20,7 +20,7 @@ Se você identificar uma falha de segurança, vulnerabilidade na implementação
 vazamento de dados:
 
 1. **Não abra uma issue pública.**
-2. Utilize o recurso nativo de **[Relatório Privado de Vulnerabilidades do GitHub](https://github.com/AndreFelipe265/LC-Pacientes/security/advisories/new)** (aba *Security* › *Advisories* › *Report a vulnerability*).
+2. Utilize o recurso nativo de **[Relatório Privado de Vulnerabilidades do GitHub](https://github.com/AndreFelipe265/LotusPsi/security/advisories/new)** (aba *Security* › *Advisories* › *Report a vulnerability*).
 3. Caso prefira contato direto, envie os detalhes em privado ao desenvolvedor principal: **André Felipe** ([@AndreFelipe265](https://github.com/AndreFelipe265)).
 4. Descreva:
    - Tipo de vulnerabilidade (ex.: IPC injection, chave residual em memória, bypass de bloqueio).

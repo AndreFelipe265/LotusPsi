@@ -1,6 +1,6 @@
 # LotusPsi — Sistema de Gestão Clínica e Prontuário
 
-[![CI](https://github.com/AndreFelipe265/LC-Pacientes/actions/workflows/ci.yml/badge.svg)](https://github.com/AndreFelipe265/LC-Pacientes/actions/workflows/ci.yml)
+[![CI](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/ci.yml/badge.svg)](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/ci.yml)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2.x-24C8DB?logo=tauri&logoColor=white)
 ![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
@@ -99,21 +99,21 @@ Detalhamento arquitetural completo e decisões registradas em [`Planejamento/02_
   - **Windows (10/11):** Visual Studio C++ Build Tools e WebView2 Runtime (nativo no Windows 10/11)
 
 > [!TIP]
-> **No Windows**, clone o repositório em um caminho curto (como `C:\dev\LC-Pacientes`) para evitar limites de tamanho de caminho (`Filename too long`), ou execute `git config --global core.longpaths true`.
+> **No Windows**, clone o repositório em um caminho curto (como `C:\dev\LotusPsi`) para evitar limites de tamanho de caminho (`Filename too long`), ou execute `git config --global core.longpaths true`.
 
 ### 1. Clonar e instalar dependências
 
 **Linux (Bash) / macOS:**
 ```bash
-git clone https://github.com/AndreFelipe265/LC-Pacientes.git
-cd LC-Pacientes/app
+git clone https://github.com/AndreFelipe265/LotusPsi.git
+cd LotusPsi/app
 npm install
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/AndreFelipe265/LC-Pacientes.git
-Set-Location LC-Pacientes\app
+git clone https://github.com/AndreFelipe265/LotusPsi.git
+Set-Location LotusPsi\app
 npm install
 ```
 
