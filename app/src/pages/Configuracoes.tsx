@@ -937,7 +937,7 @@ export function Configuracoes() {
               LotusPsi — Sistema de Gestão Clínica e Prontuário
             </h3>
             <p className="text-base font-semibold text-texto">
-              Versão 0.1.0 • Desenvolvido para gestão clínica em psicologia{" "}
+              Versão 1.0.0 • Desenvolvido para gestão clínica em psicologia{" "}
               <span className="text-malva">(CRP 00/00000)</span>
             </p>
             <p className="text-base text-lilas-acinzentado">

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag da versão (ex: v0.1.0) — deixe em branco para usar a versão de tauri.conf.json'
+        description: 'Tag da versão (ex: v1.0.0) — deixe em branco para usar a versão de tauri.conf.json'
         required: false
         default: ''
 

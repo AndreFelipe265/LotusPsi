@@ -3,7 +3,7 @@
 > **Data:** 2026-11-06
 > **Responsável pela instalação assistida:** André Felipe
 > **Usuária final:** Psicóloga Clínica (CRP 00/00000)
-> **Versão da aplicação:** `LC Pacientes v0.1.0`
+> **Versão da aplicação:** `LotusPsi v1.0.0`
 
 ---
 
@@ -28,10 +28,10 @@ Registrar o procedimento completo de instalação no computador da psicóloga cl
 - **Pacotes gerados e verificados em release:**
   - Pipeline automatizado de CI/CD: [`.github/workflows/release.yml`](../.github/workflows/release.yml) (matriz concorrente Windows e Linux com geração de `SHA256SUMS.txt`)
   - Binário otimizado: `app/src-tauri/target/release/lotuspsi`
-  - Pacote Debian/Ubuntu: `app/src-tauri/target/release/bundle/deb/LotusPsi_0.1.0_amd64.deb`
-  - Pacote RPM: `app/src-tauri/target/release/bundle/rpm/LotusPsi-0.1.0-1.x86_64.rpm`
-  - Pacote AppImage: `app/src-tauri/target/release/bundle/appimage/LotusPsi_0.1.0_amd64.AppImage`
-  - Instalador Windows NSIS (`npm run tauri build` em ambiente Windows): `LotusPsi_0.1.0_x64-setup.exe`
+  - Pacote Debian/Ubuntu: `app/src-tauri/target/release/bundle/deb/LotusPsi_1.0.0_amd64.deb`
+  - Pacote RPM: `app/src-tauri/target/release/bundle/rpm/LotusPsi-1.0.0-1.x86_64.rpm`
+  - Pacote AppImage: `app/src-tauri/target/release/bundle/appimage/LotusPsi_1.0.0_amd64.AppImage`
+  - Instalador Windows NSIS (`npm run tauri build` em ambiente Windows): `LotusPsi_1.0.0_x64-setup.exe`
 
 ---
 

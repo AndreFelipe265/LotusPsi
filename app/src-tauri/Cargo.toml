@@ -1,6 +1,6 @@
 [package]
 name = "lotuspsi"
-version = "0.1.0"
+version = "1.0.0"
 description = "LotusPsi — Sistema de Gestão Clínica e Prontuário"
 authors = ["André Felipe"]
 edition = "2021"

@@ -512,7 +512,7 @@ describe("Tela T10 — Configurações: Mensagem de aniversário (F5-T3 — RN32
     expect(secaoSobre).toBeInTheDocument();
     expect(secaoSobre).toHaveTextContent("LotusPsi — Sistema de Gestão Clínica e Prontuário");
     expect(secaoSobre).toHaveTextContent("CRP 00/00000");
-    expect(secaoSobre).toHaveTextContent("Versão 0.1.0");
+    expect(secaoSobre).toHaveTextContent("Versão 1.0.0");
     expect(secaoSobre).toHaveTextContent("100% Offline e Privativo");
     expect(secaoSobre).toHaveTextContent("SQLCipher");
     expect(secaoSobre).toHaveTextContent("Argon2id");
