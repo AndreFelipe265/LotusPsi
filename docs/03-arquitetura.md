@@ -1,6 +1,6 @@
 # 03 — Arquitetura e Decisões Técnicas (ADRs)
 
-**Projeto:** Sistema de Pacientes e Documentos (LC Consultório)  
+**Projeto:** LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)  
 **Versão:** 1.1 — 02/11/2026  
 **Documentos Complementares:** [`Planejamento/02_ARQUITETURA.md`](../Planejamento/02_ARQUITETURA.md)
 

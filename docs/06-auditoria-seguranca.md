@@ -1,6 +1,6 @@
 # Relatório de Auditoria de Segurança (F8-T3)
 
-> **Projeto:** LC Consultório — Sistema de Pacientes e Documentos  
+> **Projeto:** LotusPsi — Sistema de Pacientes e Documentos (LC Consultório)  
 > **Data:** Novembro de 2026  
 > **Auditor:** Automação e Revisão de Engenharia de Segurança  
 > **Referência:** `Planejamento/01_FONTE_DA_VERDADE.md` (Seção 7 e 9)

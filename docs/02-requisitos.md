@@ -1,6 +1,6 @@
 # 02 — Requisitos e Regras de Negócio
 
-**Projeto:** Sistema de Pacientes e Documentos (LC Consultório)  
+**Projeto:** LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)  
 **Versão:** 1.1 — 02/11/2026  
 **Documento Soberano:** [`Planejamento/01_FONTE_DA_VERDADE.md`](../Planejamento/01_FONTE_DA_VERDADE.md) (Seções 2 e 5)
 

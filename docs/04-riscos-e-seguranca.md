@@ -1,6 +1,6 @@
 # 04 — Registro de Riscos e Segurança
 
-**Projeto:** Sistema de Pacientes e Documentos (LC Consultório)  
+**Projeto:** LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)  
 **Versão:** 1.1 — 02/11/2026  
 
 ---

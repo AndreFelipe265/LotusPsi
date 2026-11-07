@@ -1,6 +1,6 @@
 # 01 — Visão do Produto
 
-**Projeto:** Sistema de Pacientes e Documentos (LC Consultório)  
+**Projeto:** LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)  
 **Versão:** 1.1 — 02/11/2026  
 **Usuária Principal:** Psicóloga Clínica (CRP 00/00000)  
 **Desenvolvedor:** André Felipe  
@@ -17,7 +17,7 @@ As soluções tradicionais de mercado apresentam barreiras críticas:
 2. **Dependência de internet:** lentidão ou impossibilidade de consultar prontuários caso haja queda de conexão.
 3. **Privacidade comprometida:** armazenamento em servidores de terceiros ou nuvens sujeitas a vazamentos e termos invasivos.
 
-O **LC Consultório** resolve esse problema sendo uma aplicação desktop **100% offline, local e criptografada**.
+O **LotusPsi** resolve esse problema sendo uma aplicação desktop **100% offline, local e criptografada**.
 O software pertence à usuária, não gera custos mensais, funciona instantaneamente no computador do consultório
 e garante sigilo profissional absoluto por meio de criptografia forte em repouso.
 

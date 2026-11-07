@@ -13,7 +13,7 @@
 
 ## 1. O que é este projeto
 
-O **Sistema de Pacientes e Documentos (LC Consultório)** é um software desktop de gestão clínica desenvolvido
+O **LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)** é um software desktop de gestão clínica desenvolvido
 sob medida para atendimento em psicologia clínica, desenvolvido pelo engenheiro de software André Felipe.
 
 O sistema atende todas as faixas etárias (crianças, adolescentes e adultos) e organiza:

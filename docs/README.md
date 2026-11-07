@@ -1,6 +1,6 @@
-# Documentação Viva — Sistema de Pacientes e Documentos
+# Documentação Viva — LotusPsi (Sistema de Pacientes e Documentos)
 
-Bem-vindo à pasta de documentação do **Sistema de Pacientes e Documentos (LC Consultório)**.
+Bem-vindo à pasta de documentação do **LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)**.
 
 > [!IMPORTANT]
 > **Hierarquia da Verdade:**
@@ -23,4 +23,5 @@ Bem-vindo à pasta de documentação do **Sistema de Pacientes e Documentos (LC 
 | [`06-auditoria-seguranca.md`](06-auditoria-seguranca.md) | Relatório de auditoria de segurança (zero rede, logs limpos, `cargo audit` e `npm audit`). |
 | [`07-entrega-e-instalacao-final.md`](07-entrega-e-instalacao-final.md) | Roteiro e checklist de instalação final, criação assistida de senha, impressão da chave e primeiro backup. |
 | [`guia-backup.md`](guia-backup.md) / [`guia-backup.pdf`](guia-backup.pdf) | Guia rápido de 1 página para a usuária: "Como fazer backup e restaurar". |
+| [`medicoes/`](medicoes/) | Evidências e relatórios técnicos gerados por script (`registro-commits.md`). |
 | [`exemplos/`](exemplos/) | Dados de referência sintéticos e transcrições de questionário para testes. |

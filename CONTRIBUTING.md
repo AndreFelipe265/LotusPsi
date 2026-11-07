@@ -1,6 +1,6 @@
 # Como Contribuir
 
-Guia de desenvolvimento para o **Sistema de Pacientes e Documentos (LC Consultório)**.
+Guia de desenvolvimento para o **LotusPsi (Sistema de Pacientes e Documentos — LC Consultório)**.
 
 > **Antes do primeiro commit, leia atentamente o [`AGENTS.md`](AGENTS.md).**
 > Ele contém as regras inegociáveis do repositório, o mapa de responsabilidades, as convenções e
