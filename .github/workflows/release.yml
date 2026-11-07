@@ -1,0 +1,173 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag da versão (ex: v0.1.0) — deixe em branco para usar a versão de tauri.conf.json'
+        required: false
+        default: ''
+
+jobs:
+  build-tauri:
+    name: Build (${{ matrix.platform }})
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            os_name: 'Windows'
+            args: ''
+          - platform: 'ubuntu-22.04'
+            os_name: 'Linux'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache do Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri -> target
+
+      - name: Instalar dependências nativas (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            xdg-utils \
+            rpm
+
+      - name: Instalar dependências do frontend
+        working-directory: app
+        run: npm ci
+
+      - name: Compilar e empacotar com Tauri Action
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: './app'
+          tagName: ${{ inputs.tag_name || 'v__VERSION__' }}
+          releaseName: 'LotusPsi v__VERSION__'
+          releaseBody: |
+            # LotusPsi — Versão v__VERSION__
+
+            Sistema desktop **100% offline** de gestão clínica e prontuário eletrônico desenvolvido sob medida para atendimento em psicologia clínica.
+
+            ---
+
+            ### 📦 Instaladores Oficiais Disponíveis
+
+            #### 🪟 Windows (10 / 11 — 64-bit)
+            - **Instalador NSIS (`.exe`):** `LotusPsi___VERSION___x64-setup.exe`  
+              *(Recomendado — Instalação limpa no perfil do usuário, sem necessidade de privilégios de administrador).*
+            - **Instalador WiX (`.msi`):** `LotusPsi___VERSION___x64_en-US.msi`  
+              *(Para ambientes gerenciados e implantações corporativas).*
+
+            #### 🐧 Linux (64-bit)
+            - **AppImage portátil (`.AppImage`):** `LotusPsi___VERSION___amd64.AppImage`  
+              *(Recomendado — Executável portátil que roda na maioria das distribuições Linux sem dependências extras).*
+              ```bash
+              chmod +x LotusPsi___VERSION___amd64.AppImage
+              ./LotusPsi___VERSION___amd64.AppImage
+              ```
+            - **Pacote Debian / Ubuntu (`.deb`):** `LotusPsi___VERSION___amd64.deb`  
+              ```bash
+              sudo dpkg -i LotusPsi___VERSION___amd64.deb
+              ```
+            - **Pacote RPM (`.rpm`):** `LotusPsi-__VERSION__-1.x86_64.rpm` (Fedora / RHEL / openSUSE)
+
+            ---
+
+            ### 🔒 Segurança e Privacidade por Construção
+            - **100% Offline:** Sem conexões de rede, sem telemetria e sem servidores externos.
+            - **Banco Criptografado em Repouso:** SQLite local cifrado via **SQLCipher** (AES-256).
+            - **Cofre de Documentos:** Arquivos e anexos clínicos cifrados com **XChaCha20-Poly1305**.
+            - **KDF de Nível Militar:** **Argon2id** (64 MiB de RAM, 3 iterações).
+            - **Chave de Recuperação em Papel:** Chave impressa em papel no primeiro acesso para recuperação de emergência sem internet.
+            - **Backup Unificado (`.lotusbackup`):** Empacotamento com checkpoint WAL e verificação SHA-256 pós-gravação.
+
+            ---
+            *Verifique a integridade dos artefatos através do arquivo `SHA256SUMS.txt` anexado.*
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  publish-release:
+    name: Publicar Release e Gerar Checksums
+    needs: build-tauri
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Definir tag da versão
+        id: get_tag
+        run: |
+          if [ -n "${{ inputs.tag_name }}" ]; then
+            TAG="${{ inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            VERSION=$(node -p "require('./app/package.json').version")
+            TAG="v${VERSION}"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Publicar Release e Gerar SHA256SUMS.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Tornando a release $TAG pública..."
+          gh release edit "$TAG" --draft=false
+
+          echo "Baixando artefatos para geração dos checksums SHA-256..."
+          mkdir -p release-assets
+          gh release download "$TAG" --dir release-assets || true
+
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          if [ "$(ls -A .)" ]; then
+            sha256sum * > ../SHA256SUMS.txt
+            cd ..
+            echo "--- SHA-256 Checksums gerados ---"
+            cat SHA256SUMS.txt
+            gh release upload "$TAG" SHA256SUMS.txt --clobber
+            echo "Checksums SHA256SUMS.txt anexados com sucesso à release $TAG!"
+          else
+            echo "Aviso: Nenhum artefato encontrado para calcular checksums."
+            cd ..
+          fi

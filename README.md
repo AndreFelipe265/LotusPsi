@@ -1,6 +1,8 @@
 # LotusPsi — Sistema de Gestão Clínica e Prontuário
 
 [![CI](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/ci.yml/badge.svg)](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/ci.yml)
+[![Release](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/release.yml/badge.svg)](https://github.com/AndreFelipe265/LotusPsi/actions/workflows/release.yml)
+[![Releases Oficiais](https://img.shields.io/github/v/release/AndreFelipe265/LotusPsi?logo=github)](https://github.com/AndreFelipe265/LotusPsi/releases)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2.x-24C8DB?logo=tauri&logoColor=white)
 ![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
@@ -89,7 +91,23 @@ Detalhamento arquitetural completo e decisões registradas em [`Planejamento/02_
 
 ---
 
-## Como Executar
+## Downloads e Instalação
+
+Os instaladores oficiais e portáteis para **Windows** e **Linux** são gerados automaticamente a cada versão e disponibilizados na página de [**Releases do GitHub**](https://github.com/AndreFelipe265/LotusPsi/releases):
+
+| Plataforma | Pacote | Formato | Como Usar / Instalar |
+|---|---|---|---|
+| **Windows 10 / 11** (64-bit) | `LotusPsi_*_x64-setup.exe` | **NSIS (Recomendado)** | Instalação limpa no perfil da usuária (`%LOCALAPPDATA%`), sem exigir privilégios de administrador. Cria atalhos na Área de Trabalho e Menu Iniciar. |
+| **Windows 10 / 11** (64-bit) | `LotusPsi_*_x64_en-US.msi` | **MSI** | Pacote corporativo para instalações gerenciadas via Windows Installer. |
+| **Linux** (64-bit) | `LotusPsi_*_amd64.AppImage` | **AppImage (Recomendado)** | Portátil; basta dar permissão de execução: `chmod +x LotusPsi_*_amd64.AppImage && ./LotusPsi_*_amd64.AppImage` |
+| **Linux** (Debian / Ubuntu) | `LotusPsi_*_amd64.deb` | **Debian** | Instalação nativa via APT/dpkg: `sudo dpkg -i LotusPsi_*_amd64.deb` |
+| **Linux** (Fedora / RHEL) | `LotusPsi-*-1.x86_64.rpm` | **RPM** | Instalação nativa via DNF/rpm: `sudo rpm -i LotusPsi-*-1.x86_64.rpm` |
+
+Todos os artefatos acompanham o arquivo de integridade criptográfica `SHA256SUMS.txt`.
+
+---
+
+## Como Executar (Ambiente de Desenvolvimento)
 
 ### Pré-requisitos
 - **Node.js** (v18 ou superior) e **npm**

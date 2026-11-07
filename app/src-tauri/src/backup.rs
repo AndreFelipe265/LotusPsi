@@ -1350,12 +1350,9 @@ mod tests {
         let state = AppState::new(dir_origem.clone());
 
         // 1. Primeiro acesso assistido (T01): criação de senha mestra + chave de recuperação (6 grupos de 4 chars)
-        let setup = executar_auth_setup_com_params(
-            &state,
-            "ConsultorioSeguro2026",
-            params_argon_rapido(),
-        )
-        .expect("setup inicial com senha e chave de recuperação");
+        let setup =
+            executar_auth_setup_com_params(&state, "ConsultorioSeguro2026", params_argon_rapido())
+                .expect("setup inicial com senha e chave de recuperação");
         assert_eq!(setup.chave_recuperacao.split('-').count(), 6);
 
         // 2. Cadastro de paciente + Grade Semanal Fixa (F9-T3) + aplicação na semana
@@ -1528,7 +1525,8 @@ mod tests {
         bytes.extend_from_slice(&cabecalho_json);
 
         let mut cursor = std::io::Cursor::new(bytes);
-        let cabecalho_lido = ler_cabecalho_backup_de_leitor(&mut cursor).expect("deve aceitar cabeçalho legado");
+        let cabecalho_lido =
+            ler_cabecalho_backup_de_leitor(&mut cursor).expect("deve aceitar cabeçalho legado");
         assert_eq!(cabecalho_lido.versao, 1);
         let _ = fs::remove_dir_all(&dir);
     }

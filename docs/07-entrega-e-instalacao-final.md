@@ -26,6 +26,7 @@ Registrar o procedimento completo de instalação no computador da psicóloga cl
   - Pasta de dados criptografados (Windows): `%APPDATA%\LotusPsi\`
   - Pasta de dados criptografados (Linux): `~/.local/share/lotuspsi/`
 - **Pacotes gerados e verificados em release:**
+  - Pipeline automatizado de CI/CD: [`.github/workflows/release.yml`](../.github/workflows/release.yml) (matriz concorrente Windows e Linux com geração de `SHA256SUMS.txt`)
   - Binário otimizado: `app/src-tauri/target/release/lotuspsi`
   - Pacote Debian/Ubuntu: `app/src-tauri/target/release/bundle/deb/LotusPsi_0.1.0_amd64.deb`
   - Pacote RPM: `app/src-tauri/target/release/bundle/rpm/LotusPsi-0.1.0-1.x86_64.rpm`

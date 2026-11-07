@@ -301,12 +301,9 @@ mod tests {
         fs::create_dir_all(&pasta_externa).expect("criar pasta externa");
 
         let state = AppState::new(data_dir.clone());
-        let setup = executar_auth_setup_com_params(
-            &state,
-            "SenhaMestraSegura2026",
-            params_argon_rapido(),
-        )
-        .expect("setup inicial");
+        let setup =
+            executar_auth_setup_com_params(&state, "SenhaMestraSegura2026", params_argon_rapido())
+                .expect("setup inicial");
         let chave_recuperacao = setup.chave_recuperacao;
 
         // 1. Popula dados completos: config, paciente, sessão, agendamento, documento geral e anamnese

@@ -138,5 +138,6 @@ flowchart LR
 - [x] **F9-T3** Grade semanal de horários fixos.
 - [x] **F9-T4** Instalador Windows final, ícone LC, nome "LC Pacientes".
 - [x] **F9-T5** Instalar no computador dela, criar senha junto com ela, imprimir a chave e fazer o primeiro backup.
+- [x] **F9-T6** Pipeline de Release multiplataforma no GitHub Actions (`.github/workflows/release.yml`) para compilação e publicação automática de instaladores Windows (`.exe`/`.msi`) e Linux (`.AppImage`/`.deb`/`.rpm`) com checksums SHA-256.
 
 **Aceite (Entrega Final):** módulos da Fase 2 integrados e estáveis; instalador final gerado e instalado no computador da usuária com o fluxo completo validado.
