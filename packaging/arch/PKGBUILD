@@ -1,0 +1,36 @@
+# Maintainer: André Felipe <160677791+AndreFelipe265@users.noreply.github.com>
+pkgname=lotuspsi
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="LotusPsi — Sistema desktop 100% offline de gestão clínica e prontuário para psicologia"
+arch=('x86_64')
+url="https://github.com/AndreFelipe265/LotusPsi"
+license=('custom')
+depends=('webkit2gtk-4.1' 'gtk3' 'libappindicator-gtk3')
+options=('!strip')
+
+source=(
+    'lotuspsi'
+    'lotuspsi.desktop'
+    'icon-32.png'
+    'icon-128.png'
+    'icon-256.png'
+    'icon-512.png'
+)
+sha256sums=(
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
+)
+
+package() {
+    install -Dm755 "${srcdir}/lotuspsi" "${pkgdir}/usr/bin/lotuspsi"
+    install -Dm644 "${srcdir}/lotuspsi.desktop" "${pkgdir}/usr/share/applications/lotuspsi.desktop"
+    install -Dm644 "${srcdir}/icon-32.png" "${pkgdir}/usr/share/icons/hicolor/32x32/apps/lotuspsi.png"
+    install -Dm644 "${srcdir}/icon-128.png" "${pkgdir}/usr/share/icons/hicolor/128x128/apps/lotuspsi.png"
+    install -Dm644 "${srcdir}/icon-256.png" "${pkgdir}/usr/share/icons/hicolor/256x256/apps/lotuspsi.png"
+    install -Dm644 "${srcdir}/icon-512.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/lotuspsi.png"
+}

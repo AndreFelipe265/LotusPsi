@@ -101,6 +101,7 @@ Os instaladores oficiais e portáteis para **Windows** e **Linux** são gerados 
 | **Windows 10 / 11** (64-bit) | `LotusPsi_*_x64_en-US.msi` | **MSI** | Pacote corporativo para instalações gerenciadas via Windows Installer. |
 | **Linux** (64-bit) | `LotusPsi_*_amd64.AppImage` | **AppImage (Recomendado)** | Portátil; basta dar permissão de execução: `chmod +x LotusPsi_*_amd64.AppImage && ./LotusPsi_*_amd64.AppImage` |
 | **Linux** (Debian / Ubuntu) | `LotusPsi_*_amd64.deb` | **Debian** | Instalação nativa via APT/dpkg: `sudo dpkg -i LotusPsi_*_amd64.deb` |
+| **Arch Linux** (x86_64) | `lotuspsi-*-1-x86_64.pkg.tar.zst` | **Pacman** | Instalação nativa via Pacman: `sudo pacman -U lotuspsi-*-1-x86_64.pkg.tar.zst` |
 | **Linux** (Fedora / RHEL) | `LotusPsi-*-1.x86_64.rpm` | **RPM** | Instalação nativa via DNF/rpm: `sudo rpm -i LotusPsi-*-1.x86_64.rpm` |
 
 Todos os artefatos acompanham o arquivo de integridade criptográfica `SHA256SUMS.txt`.

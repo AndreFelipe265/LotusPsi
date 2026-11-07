@@ -22,10 +22,10 @@ jobs:
         include:
           - platform: 'windows-latest'
             os_name: 'Windows'
-            args: ''
+            args: '--bundles nsis'
           - platform: 'ubuntu-22.04'
             os_name: 'Linux'
-            args: ''
+            args: '--bundles deb,appimage'
 
     runs-on: ${{ matrix.platform }}
 
@@ -47,6 +47,29 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: app/src-tauri -> target
+
+      - name: Configurar OpenSSL (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (Test-Path "C:\Program Files\OpenSSL") {
+            $dir = "C:\Program Files\OpenSSL"
+          } elseif (Test-Path "C:\Program Files\OpenSSL-Win64") {
+            $dir = "C:\Program Files\OpenSSL-Win64"
+          } else {
+            choco install openssl -y --no-progress
+            $dir = "C:\Program Files\OpenSSL-Win64"
+          }
+          echo "OPENSSL_DIR=$dir" >> $env:GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=$dir\include" >> $env:GITHUB_ENV
+          $cryptoLib = Get-ChildItem -Path $dir -Filter "libcrypto.lib" -Recurse | Select-Object -First 1
+          if ($cryptoLib) {
+            $libDir = $cryptoLib.DirectoryName
+            echo "OPENSSL_LIB_DIR=$libDir" >> $env:GITHUB_ENV
+            Write-Host "OpenSSL configurado em $dir com libs em $libDir"
+          } else {
+            echo "OPENSSL_LIB_DIR=$dir\lib" >> $env:GITHUB_ENV
+          }
 
       - name: Instalar dependências nativas (Linux)
         if: matrix.platform == 'ubuntu-22.04'
@@ -81,7 +104,7 @@ jobs:
           releaseBody: |
             # LotusPsi — Versão v__VERSION__
 
-            Sistema desktop **100% offline** de gestão clínica e prontuário eletrônico desenvolvido sob medida para atendimento em psicologia clínica.
+            Sistema desktop **100% offline** de gestão clínica e prontuário eletrônico desenvolvido sob medida para profissionais de psicologia.
 
             ---
 
@@ -90,8 +113,6 @@ jobs:
             #### 🪟 Windows (10 / 11 — 64-bit)
             - **Instalador NSIS (`.exe`):** `LotusPsi___VERSION___x64-setup.exe`  
               *(Recomendado — Instalação limpa no perfil do usuário, sem necessidade de privilégios de administrador).*
-            - **Instalador WiX (`.msi`):** `LotusPsi___VERSION___x64_en-US.msi`  
-              *(Para ambientes gerenciados e implantações corporativas).*
 
             #### 🐧 Linux (64-bit)
             - **AppImage portátil (`.AppImage`):** `LotusPsi___VERSION___amd64.AppImage`  
@@ -104,7 +125,13 @@ jobs:
               ```bash
               sudo dpkg -i LotusPsi___VERSION___amd64.deb
               ```
-            - **Pacote RPM (`.rpm`):** `LotusPsi-__VERSION__-1.x86_64.rpm` (Fedora / RHEL / openSUSE)
+
+            #### 🏹 Arch Linux (x86_64)
+            - **Pacote nativo (`.pkg.tar.zst`):** `lotuspsi-__VERSION__-1-x86_64.pkg.tar.zst`  
+              *(Instalação nativa via pacman com atalhos de desktop e ícones integrados).*
+              ```bash
+              sudo pacman -U lotuspsi-__VERSION__-1-x86_64.pkg.tar.zst
+              ```
 
             ---
 
@@ -121,6 +148,28 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Gerar pacote Arch Linux (.pkg.tar.zst) e anexar à release
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/build_arch_package.sh
+          if [ -n "${{ inputs.tag_name }}" ]; then
+            TAG="${{ inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            VERSION=$(node -p "require('./app/package.json').version")
+            TAG="v${VERSION}"
+          fi
+          ARCH_PKG=$(ls -1 packaging/arch/*.pkg.tar.zst 2>/dev/null | head -n 1 || true)
+          if [ -n "$ARCH_PKG" ] && [ -f "$ARCH_PKG" ]; then
+            echo "Anexando $ARCH_PKG à release $TAG..."
+            gh release upload "$TAG" "$ARCH_PKG" --clobber
+          else
+            echo "Aviso: Nenhum pacote .pkg.tar.zst encontrado."
+          fi
 
   publish-release:
     name: Publicar Release e Gerar Checksums

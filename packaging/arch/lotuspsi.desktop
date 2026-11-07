@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=LotusPsi
+Comment=Sistema de Gestão Clínica e Prontuário Eletrônico
+Exec=lotuspsi %U
+Icon=lotuspsi
+Terminal=false
+Type=Application
+Categories=Office;MedicalSoftware;Utility;
+StartupWMClass=LotusPsi
