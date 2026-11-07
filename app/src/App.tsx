@@ -14,6 +14,7 @@ import {
 import { Agenda } from "./pages/Agenda";
 import { Configuracoes } from "./pages/Configuracoes";
 import { Documentos } from "./pages/Documentos";
+import { Financeiro } from "./pages/Financeiro";
 import { Inicio } from "./pages/Inicio";
 import { Login } from "./pages/Login";
 import { PacienteForm } from "./pages/PacienteForm";
@@ -143,7 +144,7 @@ export function App({
       initialEntries={[rotaInicial]}
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
-      <div className="relative min-h-screen">
+      <div className="relative h-screen w-full overflow-hidden bg-fundo">
         <Routes>
           <Route element={<Layout aoSair={() => void bloquearSessao()} />}>
             <Route path="/" element={<Inicio />} />
@@ -152,6 +153,7 @@ export function App({
             <Route path="/pacientes/:id" element={<PacientePerfil />} />
             <Route path="/pacientes/:id/editar" element={<PacienteForm />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/financeiro" element={<Financeiro />} />
             <Route path="/documentos" element={<Documentos />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             <Route path="*" element={<Navigate to="/" replace />} />

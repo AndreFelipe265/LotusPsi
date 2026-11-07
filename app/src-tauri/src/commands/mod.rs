@@ -1,9 +1,12 @@
 pub mod agendamentos;
+pub mod anamneses;
 pub mod aniversarios;
 pub mod auth;
 pub mod backup;
 pub mod categorias;
 pub mod config;
 pub mod documentos;
+pub mod financeiro;
+pub mod horarios_semanais;
 pub mod pacientes;
 pub mod sessoes;

@@ -15,7 +15,7 @@ Implemente SOMENTE a tarefa [F?-T?]. Regras:
 
 ## Prompt para uma fase inteira
 ```
-Leia Planejamento/01_FONTE_DA_VERDADE.md (verdade absoluta), 02_ARQUITETURA.md e a fase [F?] do 03_ROADMAP.md.
+Leia Planejamento/01_FONTE_DA_VERDADE.md (verdade absoluta), 02_ARQUITETURA.md e a fase [F?] do 03_ROADMAP.md. Leia tudo caso necessario.
 Execute as tarefas da fase [F?] em ordem, uma de cada vez, rodando testes ao final de cada uma
 e marcando o checklist. Pare ao final da fase e me mostre os critérios de aceite verificados.
 ```

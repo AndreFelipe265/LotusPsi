@@ -9,9 +9,9 @@ export interface LayoutProps {
 
 export function Layout({ aoSair, children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-fundo text-texto flex">
+    <div className="h-screen w-screen overflow-hidden bg-fundo text-texto flex">
       <Sidebar aoSair={aoSair} />
-      <main className="flex-1 min-w-0 p-8 overflow-y-auto">
+      <main className="flex-1 min-w-0 h-screen overflow-y-auto p-6 md:p-8 lg:p-10">
         {children ?? <Outlet />}
       </main>
     </div>

@@ -1,0 +1,66 @@
+%PDF-1.7
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 3907 >>
+stream
+0.675 0.431 0.529 rg 40 790 515 6 re f
+BT /F2 16 Tf 0.675 0.431 0.529 rg 40 768 Td (Guia R\341pido \(1 p\341gina\) \227 Como Fazer Backup e Restaurar) Tj ET
+BT /F1 9.5 Tf 0.573 0.475 0.561 rg 40 750 Td (Sistema de Pacientes e Documentos \227 LC Consult\363rio | Usu\341ria: Louriedna Costa Pereira \(CRP 03/29434\)) Tj ET
+0.914 0.749 0.835 RG 1 w 40 738 m 555 738 l S
+BT /F2 12.5 Tf 0.675 0.431 0.529 rg 40 714 Td (1. O que \351 o arquivo de Backup \(.lcbackup\)?) Tj ET
+BT /F1 10.5 Tf 0.227 0.180 0.212 rg 40 697 Td (O Backup \351 uma c\363pia de seguran\347a \372nica \(.lcbackup\) que guarda tudo o que est\341 no seu programa:) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 682 Td (\225 Todos os pacientes \(ativos e inativos\) e seus dados cadastrais;) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 668 Td (\225 Todo o hist\363rico de sess\365es e os hor\341rios da Agenda;) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 654 Td (\225 Todos os documentos gerais e as fichas de anamnese anexadas;) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 640 Td (\225 Suas configura\347\365es e a mensagem padr\343o de anivers\341rio.) Tj ET
+0.984 0.969 0.976 rg 0.675 0.431 0.529 RG 0.8 w 40 619 515 18 re B
+BT /F2 9.5 Tf 0.227 0.180 0.212 rg 48 624 Td (Seguran\347a total: O arquivo .lcbackup \351 criptografado. S\363 abre com sua Senha Mestra ou Chave de Recupera\347\343o.) Tj ET
+BT /F2 12.5 Tf 0.675 0.431 0.529 rg 40 598 Td (2. Como fazer um Backup \(passo a passo\)) Tj ET
+BT /F1 10.5 Tf 0.227 0.180 0.212 rg 40 581 Td (Recomendamos fazer um backup pelo menos 1 vez por semana \(o painel lembra amigavelmente ap\363s 7 dias\):) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 566 Td (1. Clique em "Fazer backup agora" na tela de In\355cio \(Painel Inicial\) ou em Configura\347\365es.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 552 Td (2. Escolha onde salvar: o sistema sugere o nome backup-pacientes-AAAA-MM-DD-HHmm.lcbackup.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 538 Td (   Informe a pasta do seu pendrive \(ou Google Drive\) ou mantenha o padr\343o para salvar em Downloads.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 524 Td (3. Clique em "Salvar backup": o sistema cria o arquivo e verifica automaticamente sua integridade.) Tj ET
+BT /F2 12.5 Tf 0.675 0.431 0.529 rg 40 504 Td (3. Como Restaurar um Backup \(troca de computador ou imprevisto\)) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 487 Td (1. No menu lateral, clique em Configura\347\365es e role at\351 "Restaurar c\363pia de seguran\347a".) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 473 Td (2. Clique em "Escolher arquivo .lcbackup" e selecione o arquivo salvo no seu pendrive ou computador.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 459 Td (3. Digite a Senha Mestra daquele backup OU a sua Chave de Recupera\347\343o de 24 caracteres \(ABCD-EFGH-...\).) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 445 Td (4. Clique em "Verificar arquivo de backup" para conferir a data e o total de pacientes e documentos.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 431 Td (5. Clique em "Restaurar este backup" e confirme em "Sim, substituir dados e restaurar".) Tj ET
+0.984 0.969 0.976 rg 0.675 0.431 0.529 RG 0.8 w 40 410 515 18 re B
+BT /F2 9.5 Tf 0.227 0.180 0.212 rg 48 415 Td (Prote\347\343o autom\341tica: Antes de substituir, o sistema salva sozinho uma c\363pia dos dados atuais em backups_automaticos.) Tj ET
+BT /F2 12.5 Tf 0.675 0.431 0.529 rg 40 389 Td (4. Tr\352s dicas de ouro) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 372 Td (1. Guarde o backup fora do computador: salve sempre uma c\363pia do arquivo .lcbackup em um pendrive.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 358 Td (2. Cuide do papel da Chave de Recupera\347\343o: os 24 caracteres abrem o programa e qualquer backup antigo.) Tj ET
+BT /F1 10 Tf 0.227 0.180 0.212 rg 48 344 Td (3. Mantenha hist\363rico: conserve pelo menos os \372ltimos 2 ou 3 arquivos .lcbackup no seu pendrive.) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000000354 00000 n 
+0000000456 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+4415
+%%EOF

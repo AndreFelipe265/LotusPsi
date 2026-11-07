@@ -4,9 +4,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import * as api from "./lib/api";
 import {
+  avancarCicloBoasVindas,
+  CHAVE_CONFIG_ULTIMO_BACKUP,
+  deslocarDiasIso,
+  formatarDataBr,
+  gerarNovoCicloEmbaralhado,
   MENSAGENS_BOAS_VINDAS,
   obterDataHojeIso,
   obterSaudacaoHorario,
+  resetarCicloBoasVindas,
   sortearIndiceBoasVindas,
 } from "./lib/format";
 import { Inicio } from "./pages/Inicio";
@@ -260,7 +266,7 @@ describe("Painel Inicial T04 (F2-T3)", () => {
 
   it("exibe saudação por horário e boas-vindas rotativas sem repetir a anterior ao logar 3 vezes (F4.5-T1 — RN60–RN62)", async () => {
     expect(MENSAGENS_BOAS_VINDAS).toContain("Eu te amo, mãe! ❤️");
-    expect(MENSAGENS_BOAS_VINDAS.length).toBe(6);
+    expect(MENSAGENS_BOAS_VINDAS.length).toBe(9);
 
     for (let idx = 0; idx < MENSAGENS_BOAS_VINDAS.length; idx++) {
       for (let step = 0; step < 20; step++) {
@@ -348,6 +354,41 @@ describe("Painel Inicial T04 (F2-T3)", () => {
     expect(msgLogin3).not.toBe(msgLogin2);
   });
 
+  it("passa por todas as frases da lista embaralhada sem repetir e reinicia novo ciclo garantindo primeira frase diferente da última da lista anterior", () => {
+    resetarCicloBoasVindas();
+    const total = MENSAGENS_BOAS_VINDAS.length;
+    let fila: number[] = [];
+    let ultimo: number | null = null;
+    const vistasCiclo1 = new Set<number>();
+
+    // Ciclo 1: consome todas as 9 frases
+    for (let i = 0; i < total; i++) {
+      const res = avancarCicloBoasVindas(fila, ultimo, total);
+      expect(vistasCiclo1.has(res.escolhido)).toBe(false);
+      vistasCiclo1.add(res.escolhido);
+      ultimo = res.escolhido;
+      fila = res.novaFila;
+    }
+    expect(vistasCiclo1.size).toBe(total);
+    expect(fila.length).toBe(0);
+
+    // Ciclo 2, 1º passo: a primeira frase do novo ciclo deve ser diferente da última do ciclo 1
+    const ultimoDoCiclo1 = ultimo!;
+    const resCiclo2 = avancarCicloBoasVindas(fila, ultimo, total);
+    expect(resCiclo2.escolhido).not.toBe(ultimoDoCiclo1);
+    expect(resCiclo2.novaFila.length).toBe(total - 1);
+
+    // Valida também que gerarNovoCicloEmbaralhado nunca repete o último índice na primeira posição
+    for (let u = 0; u < total; u++) {
+      for (let trial = 0; trial < 30; trial++) {
+        const ciclo = gerarNovoCicloEmbaralhado(total, u);
+        expect(ciclo.length).toBe(total);
+        expect(new Set(ciclo).size).toBe(total);
+        expect(ciclo[0]).not.toBe(u);
+      }
+    }
+  });
+
   it("exibe 'Sessões de hoje' com horário, nome do paciente, aviso de conflito e permite registrar sessão (F4.5-T4 — RN75, RN76)", async () => {
     const hojeIso = obterDataHojeIso();
     vi.spyOn(api, "pacientesListar").mockResolvedValue([]);
@@ -432,5 +473,196 @@ describe("Painel Inicial T04 (F2-T3)", () => {
         resumo: "Sessão realizada conforme agendamento de hoje.",
       });
     });
+  });
+
+  it("exibe aniversariantes do dia (incluindo inativos) e próximos 7 dias, e abre o WhatsApp apenas ao clicar em 'Enviar parabéns no WhatsApp' (F5-T2 — RN30, RN31, RN34)", async () => {
+    const hojeIso = obterDataHojeIso();
+    vi.spyOn(api, "pacientesListar").mockResolvedValue([]);
+    vi.spyOn(api, "agendamentosListar").mockResolvedValue([]);
+    vi.spyOn(api, "aniversariantesListar").mockResolvedValue([
+      {
+        id: "p-inativa-hoje",
+        nome: "Beatriz Almeida",
+        data_nascimento: "1986-11-02",
+        data_comemoracao: hojeIso,
+        idade_completando: 40,
+        dias_ate_aniversario: 0,
+        status: "inativo",
+        telefone: null,
+        whatsapp: "71988887777",
+      },
+      {
+        id: "p-ativo-sem-tel",
+        nome: "Carlos Eduardo",
+        data_nascimento: "1996-11-02",
+        data_comemoracao: hojeIso,
+        idade_completando: 30,
+        dias_ate_aniversario: 0,
+        status: "ativo",
+        telefone: null,
+        whatsapp: null,
+      },
+      {
+        id: "p-proxima-5d",
+        nome: "Daniela Souza",
+        data_nascimento: "2010-11-07",
+        data_comemoracao: "2026-11-07",
+        idade_completando: 16,
+        dias_ate_aniversario: 5,
+        status: "ativo",
+        telefone: "71991112222",
+        whatsapp: null,
+      },
+    ]);
+
+    const whatsappSpy = vi
+      .spyOn(api, "whatsappParabens")
+      .mockResolvedValue(
+        "https://wa.me/5571988887777?text=Ol%C3%A1%2C%20Beatriz%21",
+      );
+
+    render(
+      <MemoryRouter
+        initialEntries={["/"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Inicio />
+      </MemoryRouter>,
+    );
+
+    // 1. Paciente inativo que faz aniversário hoje aparece com idade e status (RN30, RN31)
+    const itemBeatriz = await screen.findByTestId(
+      "aniversariante-hoje-p-inativa-hoje",
+    );
+    expect(itemBeatriz).toHaveTextContent("Beatriz Almeida");
+    expect(itemBeatriz).toHaveTextContent("Inativo");
+    expect(itemBeatriz).toHaveTextContent("40 anos");
+
+    // 2. Paciente ativo sem telefone aparece, mas NÃO exibe o botão do WhatsApp (RN31)
+    const itemCarlos = screen.getByTestId("aniversariante-hoje-p-ativo-sem-tel");
+    expect(itemCarlos).toHaveTextContent("Carlos Eduardo");
+    expect(itemCarlos).toHaveTextContent("Ativo");
+    expect(itemCarlos).toHaveTextContent("30 anos");
+    expect(
+      screen.queryByTestId("whatsapp-parabens-p-ativo-sem-tel"),
+    ).not.toBeInTheDocument();
+
+    // 3. O WhatsApp NUNCA é chamado automaticamente sem clique da usuária (RN31)
+    expect(whatsappSpy).not.toHaveBeenCalled();
+
+    // 4. Ao clicar no botão "Enviar parabéns no WhatsApp", aciona o comando whatsapp_parabens
+    const botaoBeatriz = screen.getByTestId(
+      "whatsapp-parabens-p-inativa-hoje",
+    );
+    expect(botaoBeatriz).toHaveTextContent("Enviar parabéns no WhatsApp");
+    fireEvent.click(botaoBeatriz);
+
+    await waitFor(() => {
+      expect(whatsappSpy).toHaveBeenCalledTimes(1);
+      expect(whatsappSpy).toHaveBeenCalledWith("p-inativa-hoje");
+    });
+
+    // 5. Expandir "Próximos aniversários (7 dias)" exibe Daniela Souza (RN34)
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Próximos aniversários \(7 dias\)/i,
+      }),
+    );
+
+    const itemDaniela = await screen.findByTestId(
+      "aniversariante-proximo-p-proxima-5d",
+    );
+    expect(itemDaniela).toHaveTextContent("Daniela Souza");
+    expect(itemDaniela).toHaveTextContent("daqui a 5 dias");
+    expect(itemDaniela).toHaveTextContent("16 anos");
+  });
+
+  it("exibe data do último backup, mostra lembrete amigável após 7 dias e permite fazer backup agora pelo painel (F7-T3 — RN50, RN51, RN53, RN55)", async () => {
+    const hojeIso = obterDataHojeIso();
+    const dezDiasAtrasIso = `${deslocarDiasIso(hojeIso, -10)}T14:20:00-03:00`;
+    const dataDezDiasBr = formatarDataBr(dezDiasAtrasIso);
+
+    vi.spyOn(api, "pacientesListar").mockResolvedValue([]);
+    vi.spyOn(api, "agendamentosListar").mockResolvedValue([]);
+    vi.spyOn(api, "aniversariantesListar").mockResolvedValue([]);
+    vi.spyOn(api, "configObter").mockImplementation(async (chave) => {
+      if (chave === CHAVE_CONFIG_ULTIMO_BACKUP) {
+        return dezDiasAtrasIso;
+      }
+      return null;
+    });
+
+    const novoBackupIso = `${hojeIso}T19:45:00-03:00`;
+    const backupCriarSpy = vi.spyOn(api, "backupCriar").mockResolvedValue({
+      caminho_arquivo: "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
+      nome_arquivo: "backup-pacientes-2026-11-06-1945.lcbackup",
+      tamanho: 204800,
+      tamanho_bytes: 204800,
+      criado_em: novoBackupIso,
+      verificado: true,
+      n_pacientes: 4,
+      n_sessoes: 12,
+      n_agendamentos: 3,
+      n_documentos: 2,
+      n_anamneses: 1,
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Inicio />
+      </MemoryRouter>,
+    );
+
+    // 1. Exibe a data do último backup de 10 dias atrás e o lembrete amigável (> 7 dias — RN53)
+    await waitFor(() => {
+      expect(screen.getByTestId("status-ultimo-backup")).toHaveTextContent(
+        `${dataDezDiasBr} às 14:20`,
+      );
+    });
+    const lembrete = screen.getByTestId("lembrete-backup-7-dias");
+    expect(lembrete).toHaveTextContent(/10 dias/i);
+
+    // 2. Clicar em "Fazer backup agora" abre o modal com nome sugerido backup-pacientes-AAAA-MM-DD-HHmm.lcbackup (RN50, RN51)
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Fazer backup agora$/i }),
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "Fazer backup agora" }),
+    ).toBeInTheDocument();
+
+    const inputCaminho = screen.getByLabelText(
+      /Pasta ou caminho para salvar o backup/i,
+    ) as HTMLInputElement;
+    expect(inputCaminho.value).toMatch(
+      /^backup-pacientes-\d{4}-\d{2}-\d{2}-\d{4}\.lcbackup$/,
+    );
+
+    // 3. Usuária escolhe pasta de destino e confirma o backup
+    fireEvent.change(inputCaminho, {
+      target: {
+        value: "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
+      },
+    });
+    fireEvent.click(screen.getByTestId("confirmar-salvar-backup-inicio"));
+
+    await waitFor(() => {
+      expect(backupCriarSpy).toHaveBeenCalledWith(
+        "/media/pendrive/backup-pacientes-2026-11-06-1945.lcbackup",
+      );
+    });
+
+    // 4. Data do último backup atualiza imediatamente e o lembrete de 7 dias desaparece
+    const hojeBr = formatarDataBr(hojeIso);
+    await waitFor(() => {
+      expect(screen.getByTestId("status-ultimo-backup")).toHaveTextContent(
+        `${hojeBr} às 19:45`,
+      );
+    });
+    expect(
+      screen.queryByTestId("lembrete-backup-7-dias"),
+    ).not.toBeInTheDocument();
   });
 });

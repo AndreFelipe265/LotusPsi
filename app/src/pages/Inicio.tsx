@@ -3,22 +3,35 @@ import { useNavigate } from "react-router-dom";
 import { Button, Input, Modal, SessaoModal, Toast } from "../components";
 import {
   agendamentosListar,
+  aniversariantesListar,
+  backupCriar,
+  backupObterCaminhoPadrao,
+  backupSelecionarDestino,
   boasVindasObter,
+  configObter,
   EVENTO_SESSAO_DESBLOQUEADA,
+  extrairErroApi,
   pacientesListar,
+  whatsappParabens,
 } from "../lib/api";
 import {
+  calcularDiasDesdeUltimoBackup,
+  CHAVE_CONFIG_ULTIMO_BACKUP,
+  ehDataIsoBackupValida,
   extrairDigitos,
   formatarDataBr,
+  formatarDataHoraBackupBr,
   formatarIdadeComNascimento,
   formatarTelefoneBr,
+  gerarNomeBackupSugerido,
   intervalosHorariosConflitam,
   MENSAGENS_BOAS_VINDAS,
   obterDataHojeIso,
   obterSaudacaoHorario,
+  precisaLembreteBackup7Dias,
   sortearIndiceBoasVindas,
 } from "../lib/format";
-import type { Agendamento, PacienteResumo } from "../lib/types";
+import type { Agendamento, Aniversariante, PacienteResumo } from "../lib/types";
 
 let ultimoIndiceBoasVindasLocal: number | null = null;
 
@@ -40,6 +53,9 @@ export function Inicio() {
   const navigate = useNavigate();
   const [pacientesAtivos, setPacientesAtivos] = useState<PacienteResumo[]>([]);
   const [sessoesHoje, setSessoesHoje] = useState<Agendamento[]>([]);
+  const [aniversariantesLista, setAniversariantesLista] = useState<
+    Aniversariante[]
+  >([]);
   const [mostrarProximos7Dias, setMostrarProximos7Dias] =
     useState<boolean>(false);
   const [rascunhoRapido, setRascunhoRapido] = useState<string>("");
@@ -54,14 +70,49 @@ export function Inicio() {
   >(undefined);
   const [modalSessaoAberto, setModalSessaoAberto] = useState<boolean>(false);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
+  const [toastErro, setToastErro] = useState<string | null>(null);
   const [mensagemBoasVindas, setMensagemBoasVindas] = useState<string>(() =>
     sortearMensagemBoasVindasLocal(),
   );
+
+  // Estado de Backup no Painel Inicial (RN50, RN51, RN53, RN55)
+  const [ultimoBackupIso, setUltimoBackupIso] = useState<string | null>(null);
+  const [modalBackupAberto, setModalBackupAberto] = useState<boolean>(false);
+  const [caminhoDestinoBackup, setCaminhoDestinoBackup] = useState<string>("");
+  const [gerandoBackup, setGerandoBackup] = useState<boolean>(false);
+  const [erroModalBackup, setErroModalBackup] = useState<string | null>(null);
 
   const hojeIso = obterDataHojeIso();
   const saudacaoHorario = obterSaudacaoHorario();
   const dataHojeBr = formatarDataBr(hojeIso);
   const totalAtivos = pacientesAtivos.length;
+
+  const aniversariantesHoje = useMemo(
+    () =>
+      aniversariantesLista.filter((item) => item.dias_ate_aniversario === 0),
+    [aniversariantesLista],
+  );
+
+  const proximosAniversariantes = useMemo(
+    () =>
+      aniversariantesLista.filter(
+        (item) =>
+          item.dias_ate_aniversario > 0 && item.dias_ate_aniversario <= 7,
+      ),
+    [aniversariantesLista],
+  );
+
+  const carregarAniversariantes = useCallback(() => {
+    aniversariantesListar(7)
+      .then((lista) => {
+        if (Array.isArray(lista)) {
+          setAniversariantesLista(lista);
+        }
+      })
+      .catch(() => {
+        // Mantém lista atual em caso de erro inicial
+      });
+  }, []);
 
   const carregarSessoesHoje = useCallback((dataIso: string) => {
     agendamentosListar({ data_inicio: dataIso, data_fim: dataIso })
@@ -113,10 +164,26 @@ export function Inicio() {
       });
   }, []);
 
+  const carregarUltimoBackup = useCallback(() => {
+    configObter(CHAVE_CONFIG_ULTIMO_BACKUP)
+      .then((valor) => {
+        if (ehDataIsoBackupValida(valor)) {
+          setUltimoBackupIso(valor!.trim());
+        } else {
+          setUltimoBackupIso(null);
+        }
+      })
+      .catch(() => {
+        // Mantém estado atual em caso de erro inicial
+      });
+  }, []);
+
   useEffect(() => {
     let cancelado = false;
     carregarBoasVindas(false);
     carregarSessoesHoje(hojeIso);
+    carregarAniversariantes();
+    carregarUltimoBackup();
     pacientesListar({ status: "ativo" })
       .then((lista) => {
         if (!cancelado && Array.isArray(lista)) {
@@ -130,18 +197,32 @@ export function Inicio() {
     return () => {
       cancelado = true;
     };
-  }, [carregarBoasVindas, carregarSessoesHoje, hojeIso]);
+  }, [
+    carregarAniversariantes,
+    carregarBoasVindas,
+    carregarSessoesHoje,
+    carregarUltimoBackup,
+    hojeIso,
+  ]);
 
   useEffect(() => {
     const aoDesbloquear = () => {
       carregarBoasVindas(true);
       carregarSessoesHoje(hojeIso);
+      carregarAniversariantes();
+      carregarUltimoBackup();
     };
     window.addEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
     return () => {
       window.removeEventListener(EVENTO_SESSAO_DESBLOQUEADA, aoDesbloquear);
     };
-  }, [carregarBoasVindas, carregarSessoesHoje, hojeIso]);
+  }, [
+    carregarAniversariantes,
+    carregarBoasVindas,
+    carregarSessoesHoje,
+    carregarUltimoBackup,
+    hojeIso,
+  ]);
 
   const pacientesFiltradosBuscaRapida = useMemo(() => {
     const termo = buscaRapida.trim();
@@ -210,8 +291,71 @@ export function Inicio() {
     );
   }
 
+  function temContatoWhatsapp(item: Aniversariante): boolean {
+    const digitos = extrairDigitos(item.whatsapp || item.telefone || "");
+    return digitos.length >= 10;
+  }
+
+  async function enviarParabensWhatsapp(item: Aniversariante) {
+    setToastErro(null);
+    try {
+      await whatsappParabens(item.id);
+    } catch (erro) {
+      setToastErro(extrairErroApi(erro).mensagem);
+    }
+  }
+
+  const diasDesdeUltimoBackup = calcularDiasDesdeUltimoBackup(ultimoBackupIso);
+  const exibirLembreteBackup7Dias = precisaLembreteBackup7Dias(ultimoBackupIso);
+
+  async function abrirModalBackup() {
+    setErroModalBackup(null);
+    setCaminhoDestinoBackup(gerarNomeBackupSugerido());
+    setModalBackupAberto(true);
+    try {
+      const padrao = await backupObterCaminhoPadrao();
+      if (padrao) {
+        setCaminhoDestinoBackup(padrao);
+      }
+    } catch {
+      // Mantém nome sugerido se não conseguir obter o caminho padrão
+    }
+  }
+
+  async function escolherPastaBackup() {
+    try {
+      const selecionado = await backupSelecionarDestino(
+        caminhoDestinoBackup.trim() || null,
+      );
+      if (selecionado) {
+        setCaminhoDestinoBackup(selecionado);
+      }
+    } catch (erro) {
+      setErroModalBackup(extrairErroApi(erro).mensagem);
+    }
+  }
+
+  async function confirmarFazerBackupAgora() {
+    setErroModalBackup(null);
+    setToastErro(null);
+    setToastSucesso(null);
+    setGerandoBackup(true);
+    try {
+      const resultado = await backupCriar(caminhoDestinoBackup.trim() || null);
+      setUltimoBackupIso(resultado.criado_em);
+      setModalBackupAberto(false);
+      setToastSucesso(
+        `Backup salvo e verificado com sucesso em: ${resultado.caminho_arquivo}`,
+      );
+    } catch (erro) {
+      setErroModalBackup(extrairErroApi(erro).mensagem);
+    } finally {
+      setGerandoBackup(false);
+    }
+  }
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full max-w-[1600px] mx-auto space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-fundo-claro border border-rosa-claro rounded-2xl p-6 shadow-xs">
         <div className="space-y-1">
           <p
@@ -373,13 +517,72 @@ export function Inicio() {
           data-testid="secao-aniversariantes"
           className="bg-fundo-claro border border-rosa-claro rounded-2xl p-6 space-y-4 shadow-xs"
         >
-          <div className="space-y-1">
+          <div className="space-y-3">
             <h3 className="text-lg font-bold text-malva">
               Aniversariantes do dia
             </h3>
-            <p className="text-base text-texto">
-              Nenhum aniversariante registrado para hoje ({dataHojeBr}).
-            </p>
+
+            {aniversariantesHoje.length === 0 ? (
+              <p className="text-base text-texto">
+                Nenhum aniversariante registrado para hoje ({dataHojeBr}).
+              </p>
+            ) : (
+              <ul
+                data-testid="lista-aniversariantes-hoje"
+                className="divide-y divide-rosa-claro border border-rosa-claro rounded-xl bg-fundo"
+              >
+                {aniversariantesHoje.map((aniv) => (
+                  <li
+                    key={aniv.id}
+                    data-testid={`aniversariante-hoje-${aniv.id}`}
+                    className="p-4 flex flex-col gap-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/pacientes/${aniv.id}`)}
+                            className="text-base font-bold text-malva hover:underline text-left"
+                          >
+                            {aniv.nome}
+                          </button>
+                          <span
+                            data-testid={`status-aniversariante-${aniv.id}`}
+                            className={`px-2.5 py-0.5 rounded-full text-base font-semibold border ${
+                              aniv.status === "ativo"
+                                ? "bg-rosa-claro/50 border-malva text-texto"
+                                : "bg-fundo-claro border-lilas-acinzentado text-lilas-acinzentado"
+                            }`}
+                          >
+                            {aniv.status === "ativo" ? "Ativo" : "Inativo"}
+                          </span>
+                        </div>
+                        <p className="text-base text-texto">
+                          Completando{" "}
+                          <strong>
+                            {aniv.idade_completando}{" "}
+                            {aniv.idade_completando === 1 ? "ano" : "anos"}
+                          </strong>{" "}
+                          hoje
+                        </p>
+                      </div>
+
+                      {temContatoWhatsapp(aniv) && (
+                        <Button
+                          variante="primario"
+                          className="px-4 py-2 shrink-0"
+                          data-testid={`whatsapp-parabens-${aniv.id}`}
+                          onClick={() => void enviarParabensWhatsapp(aniv)}
+                        >
+                          Enviar parabéns no WhatsApp
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="pt-2 border-t border-rosa-claro space-y-3">
@@ -398,7 +601,61 @@ export function Inicio() {
                 data-testid="lista-proximos-aniversarios"
                 className="p-4 rounded-xl bg-fundo border border-rosa-claro text-base text-texto"
               >
-                Nenhum aniversário nos próximos 7 dias.
+                {proximosAniversariantes.length === 0 ? (
+                  "Nenhum aniversário nos próximos 7 dias."
+                ) : (
+                  <ul className="divide-y divide-rosa-claro">
+                    {proximosAniversariantes.map((prox) => (
+                      <li
+                        key={prox.id}
+                        data-testid={`aniversariante-proximo-${prox.id}`}
+                        className="py-3 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/pacientes/${prox.id}`)}
+                              className="text-base font-bold text-malva hover:underline text-left"
+                            >
+                              {prox.nome}
+                            </button>
+                            <span className="px-2.5 py-0.5 rounded-full text-base font-semibold border border-lilas-acinzentado text-texto">
+                              {prox.status === "ativo" ? "Ativo" : "Inativo"}
+                            </span>
+                          </div>
+                          <p className="text-base text-texto">
+                            Em{" "}
+                            <strong>
+                              {formatarDataBr(prox.data_comemoracao).slice(
+                                0,
+                                5,
+                              )}
+                            </strong>{" "}
+                            (daqui a {prox.dias_ate_aniversario}{" "}
+                            {prox.dias_ate_aniversario === 1 ? "dia" : "dias"})
+                            — fará{" "}
+                            <strong>
+                              {prox.idade_completando}{" "}
+                              {prox.idade_completando === 1 ? "ano" : "anos"}
+                            </strong>
+                          </p>
+                        </div>
+
+                        {temContatoWhatsapp(prox) && (
+                          <Button
+                            variante="contorno"
+                            className="px-3.5 py-1.5 shrink-0"
+                            data-testid={`whatsapp-parabens-${prox.id}`}
+                            onClick={() => void enviarParabensWhatsapp(prox)}
+                          >
+                            Enviar parabéns no WhatsApp
+                          </Button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
           </div>
@@ -409,7 +666,7 @@ export function Inicio() {
           data-testid="secao-backup"
           className="bg-fundo-claro border border-rosa-claro rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-xs"
         >
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-lg font-bold text-malva">
               Cópia de segurança (Backup)
             </h3>
@@ -417,24 +674,103 @@ export function Inicio() {
               data-testid="status-ultimo-backup"
               className="text-base text-texto"
             >
-              Último backup: <strong>Ainda não realizado</strong>
+              Último backup:{" "}
+              <strong>{formatarDataHoraBackupBr(ultimoBackupIso)}</strong>
             </p>
+            {exibirLembreteBackup7Dias && (
+              <div
+                role="status"
+                data-testid="lembrete-backup-7-dias"
+                className="p-3.5 rounded-xl bg-rosa-claro/40 border border-malva text-base text-texto"
+              >
+                Faz <strong>{diasDesdeUltimoBackup} dias</strong> desde o seu
+                último backup. Recomendamos salvar uma nova cópia de segurança
+                em seu pendrive ou pasta segura.
+              </div>
+            )}
             <p className="text-base text-lilas-acinzentado">
               Guarde uma cópia criptografada dos seus pacientes e documentos em
               um pendrive ou pasta segura.
             </p>
           </div>
 
-          <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variante="primario" onClick={abrirModalBackup}>
+              Fazer backup agora
+            </Button>
             <Button
-              variante="primario"
+              variante="contorno"
               onClick={() => navigate("/configuracoes")}
             >
-              Fazer backup agora
+              Restaurar em Configurações
             </Button>
           </div>
         </section>
       </div>
+
+      {/* Modal Fazer backup agora (RN50, RN51, RN55) */}
+      <Modal
+        aberto={modalBackupAberto}
+        titulo="Fazer backup agora"
+        aoFechar={() => {
+          if (!gerandoBackup) setModalBackupAberto(false);
+        }}
+        larguraMax="lg"
+        rodape={
+          <>
+            <Button
+              variante="contorno"
+              disabled={gerandoBackup}
+              onClick={() => setModalBackupAberto(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variante="primario"
+              disabled={gerandoBackup}
+              data-testid="confirmar-salvar-backup-inicio"
+              onClick={() => void confirmarFazerBackupAgora()}
+            >
+              {gerandoBackup ? "Gerando e verificando..." : "Salvar backup"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-base text-texto">
+            O sistema criará um único arquivo <strong>.lcbackup</strong>{" "}
+            criptografado com todos os seus pacientes, sessões, agenda,
+            documentos gerais e fichas de anamnese, verificando a integridade ao
+            final.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="flex-1">
+              <Input
+                id="campo-caminho-destino-backup-inicio"
+                data-testid="campo-caminho-destino-backup-inicio"
+                rotulo="Pasta ou caminho para salvar o backup (.lcbackup)"
+                value={caminhoDestinoBackup}
+                onChange={(e) => setCaminhoDestinoBackup(e.target.value)}
+                placeholder="Ex.: /home/.../Downloads/backup-...lcbackup"
+                ajuda="Por padrão, salvo na pasta de Downloads. Você pode clicar em 'Escolher pasta...' para selecionar seu pendrive ou pasta na nuvem."
+              />
+            </div>
+            <Button
+              type="button"
+              variante="contorno"
+              data-testid="botao-escolher-pasta-backup-inicio"
+              onClick={() => void escolherPastaBackup()}
+            >
+              Escolher pasta...
+            </Button>
+          </div>
+          {erroModalBackup && (
+            <p role="alert" className="text-base font-semibold text-malva">
+              {erroModalBackup}
+            </p>
+          )}
+        </div>
+      </Modal>
 
       <section className="bg-fundo-claro border border-rosa-claro rounded-2xl shadow-xs p-6 space-y-3">
         <label
@@ -538,6 +874,11 @@ export function Inicio() {
         mensagem={toastSucesso}
         tipo="sucesso"
         aoFechar={() => setToastSucesso(null)}
+      />
+      <Toast
+        mensagem={toastErro}
+        tipo="erro"
+        aoFechar={() => setToastErro(null)}
       />
     </div>
   );

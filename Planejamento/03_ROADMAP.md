@@ -11,7 +11,7 @@ flowchart LR
   F2 --> F6["F6 Documentos"]
   F4 --> F7["F7 Backup"]
   F6 --> F7
-  F7 --> F8["F8 Polimento + Instalador"] --> E["Entrega MVP"] --> F9["F9 Fase 2"]
+  F7 --> F8["F8 Configurações/Polimento"] --> F9["F9 Fase 2"] --> E["Instalador Final + Entrega"]
 ```
 
 **Marco de uso real:** ao final de **F4**, a usuária já pode começar a usar o app, conforme a prioridade escolhida por ela (pergunta 7.1). Gere um instalador provisório nesse momento.
@@ -97,43 +97,46 @@ flowchart LR
 **Aceite:** logar 3 vezes e ver mensagens diferentes consecutivas; agendar 2 sessões no mesmo horário (aviso de conflito), vê-las na semana e em "Sessões de hoje".
 
 ## F5 — Aniversariantes (RN30–RN34)
-- [ ] **F5-T1** Comando `aniversariantes` (hoje + 7 dias, inclui inativos, regra do 29/02). Testes.
-- [ ] **F5-T2** Card no painel com o botão "Enviar parabéns no WhatsApp" (`wa.me`, só com clique).
-- [ ] **F5-T3** Mensagem padrão editável em Configurações (RN32).
+- [x] **F5-T1** Comando `aniversariantes` (hoje + 7 dias, inclui inativos, regra do 29/02). Testes.
+- [x] **F5-T2** Card no painel com o botão "Enviar parabéns no WhatsApp" (`wa.me`, só com clique).
+- [x] **F5-T3** Mensagem padrão editável em Configurações (RN32).
 
 **Aceite:** paciente inativo que faz aniversário hoje aparece; o botão abre o WhatsApp com a mensagem preenchida.
 
 ## F6 — Documentos (RN40–RN48, T09)
-- [ ] **F6-T1** `files.rs`: validação (extensão + magic bytes + 25 MB) e cifragem em blocos. Testes.
-- [ ] **F6-T2** Categorias: seed (Modelos, Administrativo, Outros) e CRUD (RN41).
-- [ ] **F6-T3** Comandos enviar/listar/baixar/abrir/atualizar/excluir.
-- [ ] **F6-T4** Tela T09: abas de categoria, busca, enviar (botão + arrastar e soltar) e ações por arquivo.
-- [ ] **F6-T5** Anamnese — backend: migração `anamneses`, comandos anexar/listar/abrir/baixar/excluir reaproveitando `files.rs` (RN65–RN68). Testes.
-- [ ] **F6-T6** Anamnese — interface: seção no perfil T07 entre o nome e o histórico de sessões (RN65–RN69).
+- [x] **F6-T1** `files.rs`: validação (extensão + magic bytes + 25 MB) e cifragem em blocos. Testes.
+- [x] **F6-T2** Categorias: seed (Modelos, Administrativo, Outros) e CRUD (RN41).
+- [x] **F6-T3** Comandos enviar/listar/baixar/abrir/atualizar/excluir.
+- [x] **F6-T4** Tela T09: abas de categoria, busca, enviar (botão + arrastar e soltar) e ações por arquivo.
+- [x] **F6-T5** Anamnese — backend: migração `anamneses`, comandos anexar/listar/abrir/baixar/excluir reaproveitando `files.rs` (RN65–RN68). Testes.
+- [x] **F6-T6** Anamnese — interface: seção no perfil T07 entre o nome e o histórico de sessões (RN65–RN69).
 
 **Aceite:** enviar PDF e DOCX, baixar idêntico (sha256 igual), arquivo em disco ilegível, rejeitar `.exe` renomeado para `.pdf`; anexar e abrir um PDF de anamnese no perfil do paciente.
 
 ## F7 — Backup e restauração (RN50–RN55)
-- [ ] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL, inclui agendamentos) + docs + anexos de anamnese (RN56) + vault → `.lcbackup` cifrado, com verificação pós-gravação.
-- [ ] **F7-T2** Inspecionar e restaurar, com cópia automática prévia dos dados atuais.
-- [ ] **F7-T3** Interface: botão no painel e em Configurações, data do último backup e lembrete após 7 dias.
-- [ ] **F7-T4** Escrever um guia de 1 página para a usuária: "Como fazer backup e restaurar" (`docs/guia-backup.md` → PDF).
+- [x] **F7-T1** `backup.rs`: empacotar banco (checkpoint WAL, inclui agendamentos) + docs + anexos de anamnese (RN56) + vault → `.lcbackup` cifrado, com verificação pós-gravação.
+- [x] **F7-T2** Inspecionar e restaurar, com cópia automática prévia dos dados atuais.
+- [x] **F7-T3** Interface: botão no painel e em Configurações, data do último backup e lembrete após 7 dias.
+- [x] **F7-T4** Escrever um guia de 1 página para a usuária: "Como fazer backup e restaurar" (`docs/guia-backup.md` → PDF).
 
 **Aceite:** backup → apagar a pasta de dados → restaurar → tudo idêntico. Abrir com a chave de recuperação também funciona.
 
-## F8 — Configurações, polimento e entrega
-- [ ] **F8-T1** Tela T10 completa: trocar senha, backup/restaurar, mensagem, categorias, Sobre.
-- [ ] **F8-T2** Revisão de UX com a usuária (sessão de teste guiada, anotar ajustes).
-- [ ] **F8-T3** Auditoria de segurança:
+## F8 — Configurações e polimento
+- [x] **F8-T1** Tela T10 completa: trocar senha, backup/restaurar, mensagem, categorias, Sobre.
+- [x] **F8-T2** Revisão de UX com a usuária (sessão de teste guiada, anotar ajustes).
+- [x] **F8-T3** Auditoria de segurança:
   - Zero rede (verificar com firewall/monitor).
   - Logs limpos.
   - `cargo audit` / `npm audit`.
-- [ ] **F8-T4** Instalador Windows final, ícone LC, nome "LC Pacientes".
-- [ ] **F8-T5** Instalar no computador dela, criar senha junto com ela, imprimir a chave e fazer o primeiro backup.
+- [x] **F8-T4** Identidade visual: alterar/atualizar o logo e ícone do app na barra de tarefas e na janela da aplicação (geração dos assets e configuração no Tauri).
 
-**Aceite (Entrega MVP):** todos os critérios das fases F0–F7 OK e a usuária completa sozinha o fluxo "cadastrar paciente → registrar sessão → enviar documento → backup".
+**Aceite:** tela T10 com todas as opções funcionais, navegação e UX refinadas, logo/ícone exibidos corretamente na janela e na barra de tarefas, e auditoria de segurança aprovada.
 
-## F9 — Fase 2 (após o MVP estabilizar)
-- [ ] **F9-T1** Levantar detalhes do financeiro e da grade semanal com a usuária. Atualizar a Fonte da Verdade **antes** de codar.
-- [ ] **F9-T2** Financeiro: entradas/gastos, vínculo opcional ao paciente e resumo mensal.
-- [ ] **F9-T3** Grade semanal de horários fixos.
+## F9 — Fase 2 e Entrega Final
+- [x] **F9-T1** Levantar detalhes do financeiro e da grade semanal com a usuária. Atualizar a Fonte da Verdade **antes** de codar.
+- [x] **F9-T2** Financeiro: entradas/gastos, vínculo opcional ao paciente e resumo mensal.
+- [x] **F9-T3** Grade semanal de horários fixos.
+- [x] **F9-T4** Instalador Windows final, ícone LC, nome "LC Pacientes".
+- [x] **F9-T5** Instalar no computador dela, criar senha junto com ela, imprimir a chave e fazer o primeiro backup.
+
+**Aceite (Entrega Final):** módulos da Fase 2 integrados e estáveis; instalador final gerado e instalado no computador da usuária com o fluxo completo validado.

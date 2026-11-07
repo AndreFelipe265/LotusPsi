@@ -31,10 +31,12 @@
     font-size: 16px;
     color: #3a2e36;
     background-color: #fbf7f9;
+    height: 100%;
   }
 
   body {
     margin: 0;
+    height: 100%;
     min-height: 100vh;
     font-family:
       "Open Sans Local", "Nunito", ui-sans-serif, system-ui, sans-serif;
@@ -42,5 +44,11 @@
     line-height: 1.5;
     color: #3a2e36;
     background-color: #fbf7f9;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
   }
 }

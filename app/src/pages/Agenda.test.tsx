@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Agendamento, PacienteResumo } from "../lib/types";
+import type {
+  Agendamento,
+  HorarioSemanal,
+  PacienteResumo,
+} from "../lib/types";
 import { Agenda } from "./Agenda";
 
 const mockInvoke = vi.fn();
@@ -323,5 +327,142 @@ describe("Tela T11 — Agenda (F4.5-T3 — RN70–RN76)", () => {
     expect(
       screen.getByTestId("card-agendamento-ag-passado"),
     ).toBeInTheDocument();
+  });
+
+  it("gerencia a Grade Semanal Fixa (RN90–RN94): cria horário fixo, avisa conflito no mesmo dia da semana, aplica grade na semana e exclui", async () => {
+    const bancoGrade: HorarioSemanal[] = [
+      {
+        id: "h-1",
+        paciente_id: "p-joao",
+        paciente_nome: "João da Conceição",
+        paciente_status: "ativo",
+        dia_semana: 1, // Segunda-feira
+        hora_inicio: "14:00",
+        duracao_min: 50,
+        observacao: "Horário fixo semanal",
+        criado_em: "2026-11-01T10:00:00Z",
+        atualizado_em: "2026-11-01T10:00:00Z",
+        conflito: false,
+        conflito_descricao: null,
+      },
+    ];
+
+    mockInvoke.mockImplementation((cmd: string, args: unknown) => {
+      if (cmd === "pacientes_listar") return Promise.resolve(PACIENTES_ATIVOS);
+      if (cmd === "agendamentos_listar") return Promise.resolve([]);
+      if (cmd === "horarios_semanais_listar") {
+        return Promise.resolve([...bancoGrade]);
+      }
+      if (cmd === "horario_semanal_criar") {
+        const { dados } = args as {
+          dados: {
+            paciente_id: string;
+            dia_semana: number;
+            hora_inicio: string;
+            duracao_min?: number;
+            observacao?: string | null;
+          };
+        };
+        const paciente = PACIENTES_ATIVOS.find(
+          (p) => p.id === dados.paciente_id,
+        );
+        const novo: HorarioSemanal = {
+          id: "h-2",
+          paciente_id: dados.paciente_id,
+          paciente_nome: paciente?.nome ?? "Paciente",
+          paciente_status: "ativo",
+          dia_semana: dados.dia_semana,
+          hora_inicio: dados.hora_inicio,
+          duracao_min: dados.duracao_min ?? 50,
+          observacao: dados.observacao ?? null,
+          criado_em: "2026-11-02T10:00:00Z",
+          atualizado_em: "2026-11-02T10:00:00Z",
+          conflito: false,
+          conflito_descricao: null,
+        };
+        bancoGrade.push(novo);
+        return Promise.resolve(novo);
+      }
+      if (cmd === "horarios_semanais_aplicar_semana") {
+        return Promise.resolve({
+          data_inicio_semana: "2026-11-02",
+          data_fim_semana: "2026-11-08",
+          criados: 2,
+          ignorados_existentes: 0,
+        });
+      }
+      if (cmd === "horario_semanal_excluir") {
+        const { id } = args as { id: string };
+        const idx = bancoGrade.findIndex((h) => h.id === id);
+        if (idx >= 0) bancoGrade.splice(idx, 1);
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    render(
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Agenda dataHojeIso="2026-11-02" />
+      </MemoryRouter>,
+    );
+
+    // 1. Alternar para a visão "Grade Fixa" (RN92)
+    fireEvent.click(screen.getByRole("button", { name: "Grade Fixa" }));
+    expect(await screen.findByTestId("visao-grade-semanal")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("card-horario-fixo-h-1"),
+    ).toHaveTextContent("João da Conceição");
+
+    // 2. Abrir modal clicando em "Fixar neste dia" na Segunda-feira (dia 1) e verificar aviso de conflito (RN93)
+    fireEvent.click(screen.getByTestId("slot-grade-1"));
+    expect(
+      await screen.findByRole("dialog", { name: "Novo horário fixo semanal" }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Paciente/i), {
+      target: { value: "p-ana" },
+    });
+    fireEvent.change(screen.getByLabelText(/Horário de início/i), {
+      target: { value: "14:00" },
+    });
+
+    expect(screen.getByTestId("aviso-conflito-grade-modal")).toHaveTextContent(
+      /João da Conceição \(14:00\)/i,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Salvar horário fixo" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("card-horario-fixo-h-2")).toHaveTextContent(
+        "Ana Beatriz",
+      );
+    });
+
+    // 3. Aplicar grade semanal na semana atual (RN94)
+    fireEvent.click(screen.getByTestId("botao-aplicar-grade-semana"));
+    expect(
+      await screen.findByText(
+        /Grade semanal aplicada: 2 agendamentos criados na semana/i,
+      ),
+    ).toBeInTheDocument();
+
+    // 4. Excluir horário fixo com confirmação (RN92)
+    fireEvent.click(screen.getByTestId("excluir-horario-fixo-h-2"));
+    expect(
+      screen.getByRole("dialog", { name: "Excluir horário fixo" }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sim, remover horário fixo" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("card-horario-fixo-h-2"),
+      ).not.toBeInTheDocument();
+    });
   });
 });

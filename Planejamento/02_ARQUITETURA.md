@@ -83,6 +83,12 @@ Sistema Pacientes/
 | | `backup_inspecionar` | `caminho, senha` → `{ data, n_pacientes, n_documentos }` |
 | | `backup_restaurar` | `caminho, senha` |
 | config | `config_obter` / `config_definir` | mensagem de aniversário, último backup |
+| financeiro | `financeiro_listar` | `{ ano_mes, tipo?, busca? }` → `LancamentoFinanceiro[]` |
+| | `financeiro_resumo_mensal` | `{ ano_mes }` → `ResumoFinanceiroMensal` |
+| | `financeiro_criar` / `financeiro_atualizar` / `financeiro_excluir` | |
+| grade_semanal | `horarios_semanais_listar` | `{ paciente_id? }` → `HorarioSemanal[]` |
+| | `horario_semanal_criar` / `horario_semanal_atualizar` / `horario_semanal_excluir` | |
+| | `horarios_semanais_aplicar_semana` | `{ data_referencia }` → `ResultadoAplicarGradeSemana` |
 
 **Regras dos comandos:**
 - Todo comando de dados verifica se o app está desbloqueado. Se não estiver, retorna `Erro::Bloqueado` e o frontend redireciona para o Login.

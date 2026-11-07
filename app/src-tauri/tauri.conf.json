@@ -28,12 +28,25 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "Felipe — LC Consultório",
+    "copyright": "Copyright © 2026 Louriedna Costa Pereira (CRP 03/29434)",
+    "shortDescription": "LC Pacientes — Sistema de Pacientes e Documentos",
+    "longDescription": "Sistema desktop 100% offline de gestão clínica desenvolvido sob medida para a psicóloga Louriedna Costa Pereira (CRP 03/29434).",
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "displayLanguageSelector": false,
+        "languages": ["PortugueseBR"],
+        "installMode": "currentUser"
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
-      "icons/icon.ico"
+      "icons/icon.ico",
+      "icons/icon.png"
     ]
   }
 }

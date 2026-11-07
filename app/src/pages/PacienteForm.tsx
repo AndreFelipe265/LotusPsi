@@ -208,14 +208,14 @@ export function PacienteForm() {
 
   if (carregandoDados) {
     return (
-      <div className="max-w-3xl mx-auto p-6 bg-fundo-claro border border-rosa-claro rounded-2xl text-base text-texto">
+      <div className="w-full max-w-5xl mx-auto p-6 bg-fundo-claro border border-rosa-claro rounded-2xl text-base text-texto">
         Carregando dados do paciente...
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="w-full max-w-5xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-malva">

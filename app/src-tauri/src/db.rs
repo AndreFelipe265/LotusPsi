@@ -17,6 +17,16 @@ pub const MIGRACAO_001_INICIAL: &str = include_str!("../migrations/001_inicial.s
 /// SQL da migração 002: tabela `agendamentos` (F4.5-T2 — Seção 6 da Fonte da Verdade).
 pub const MIGRACAO_002_AGENDAMENTOS: &str = include_str!("../migrations/002_agendamentos.sql");
 
+/// SQL da migração 003: tabela `anamneses` (F6-T5 — Seção 6 da Fonte da Verdade, RN65–RN68).
+pub const MIGRACAO_003_ANAMNESES: &str = include_str!("../migrations/003_anamneses.sql");
+
+/// SQL da migração 004: tabela `lancamentos_financeiros` (F9-T2 — Seção 6 da Fonte da Verdade, RN80–RN86).
+pub const MIGRACAO_004_FINANCEIRO: &str = include_str!("../migrations/004_financeiro.sql");
+
+/// SQL da migração 005: tabela `horarios_semanais` (F9-T3 — Seção 6 da Fonte da Verdade, RN90–RN95).
+pub const MIGRACAO_005_HORARIOS_SEMANAIS: &str =
+    include_str!("../migrations/005_horarios_semanais.sql");
+
 /// Nome do arquivo do banco de dados SQLCipher na pasta de dados.
 pub const NOME_ARQUIVO_BANCO: &str = "pacientes.db";
 
@@ -103,6 +113,59 @@ pub fn aplicar_migracoes(conn: &mut Connection) -> Resultado<()> {
         tx.commit()?;
     }
 
+    let versao_3_aplicada: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE versao = 3);",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if !versao_3_aplicada {
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRACAO_003_ANAMNESES)?;
+        let agora = Local::now().to_rfc3339();
+        tx.execute(
+            "INSERT INTO schema_migrations (versao, aplicado_em) VALUES (3, ?1);",
+            [&agora],
+        )?;
+        tx.commit()?;
+    }
+
+    let versao_4_aplicada: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE versao = 4);",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if !versao_4_aplicada {
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRACAO_004_FINANCEIRO)?;
+        let agora = Local::now().to_rfc3339();
+        tx.execute(
+            "INSERT INTO schema_migrations (versao, aplicado_em) VALUES (4, ?1);",
+            [&agora],
+        )?;
+        tx.commit()?;
+    }
+
+    let versao_5_aplicada: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE versao = 5);",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if !versao_5_aplicada {
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRACAO_005_HORARIOS_SEMANAIS)?;
+        let agora = Local::now().to_rfc3339();
+        tx.execute(
+            "INSERT INTO schema_migrations (versao, aplicado_em) VALUES (5, ?1);",
+            [&agora],
+        )?;
+        tx.commit()?;
+    }
+
+    crate::commands::categorias::garantir_categorias_iniciais_conn(conn)?;
+
     Ok(())
 }
 
@@ -152,6 +215,9 @@ mod tests {
             "categorias_documento",
             "documentos",
             "agendamentos",
+            "anamneses",
+            "lancamentos_financeiros",
+            "horarios_semanais",
             "schema_migrations",
         ] {
             let existe: bool = conn

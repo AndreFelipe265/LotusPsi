@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Button,
@@ -10,7 +10,13 @@ import {
 } from "../components";
 import {
   agendamentoProximoPaciente,
+  anamneseAbrir,
+  anamneseAnexar,
+  anamneseBaixar,
+  anamneseExcluir,
+  anamnesesListar,
   extrairErroApi,
+  horariosSemanaisListar,
   pacienteDefinirStatus,
   pacienteExcluir,
   pacienteObter,
@@ -19,11 +25,21 @@ import {
 } from "../lib/api";
 import {
   formatarDataBr,
+  formatarDiaSemanaCurtoBr,
   formatarIdadeComNascimento,
   formatarMoedaBr,
+  formatarTamanhoBytes,
   formatarTelefoneBr,
+  lerArquivoComoBase64,
+  obterRotuloTipoArquivo,
 } from "../lib/format";
-import type { Agendamento, Paciente, Sessao } from "../lib/types";
+import type {
+  Agendamento,
+  Anamnese,
+  HorarioSemanal,
+  Paciente,
+  Sessao,
+} from "../lib/types";
 
 function ordenarSessoesDecrescente(lista: Sessao[]): Sessao[] {
   return [...lista].sort((a, b) => {
@@ -39,8 +55,10 @@ export function PacientePerfil() {
 
   const [paciente, setPaciente] = useState<Paciente | null>(null);
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
+  const [anamneses, setAnamneses] = useState<Anamnese[]>([]);
   const [proximoAgendamento, setProximoAgendamento] =
     useState<Agendamento | null>(null);
+  const [horariosFixos, setHorariosFixos] = useState<HorarioSemanal[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [erroMensagem, setErroMensagem] = useState<string | null>(null);
   const [toastSucesso, setToastSucesso] = useState<string | null>(null);
@@ -63,6 +81,24 @@ export function PacientePerfil() {
   );
   const [excluindoSessao, setExcluindoSessao] = useState<boolean>(false);
 
+  // Estado de Anamnese (RN65–RN69)
+  const inputAnamneseRef = useRef<HTMLInputElement | null>(null);
+  const [arrastandoAnamnese, setArrastandoAnamnese] = useState<boolean>(false);
+  const [modalAnamneseAberto, setModalAnamneseAberto] = useState<boolean>(false);
+  const [arquivoAnamnese, setArquivoAnamnese] = useState<File | null>(null);
+  const [caminhoManualAnamnese, setCaminhoManualAnamnese] =
+    useState<string>("");
+  const [erroAnamnese, setErroAnamnese] = useState<string | null>(null);
+  const [anexandoAnamnese, setAnexandoAnamnese] = useState<boolean>(false);
+  const [anamneseParaBaixar, setAnamneseParaBaixar] =
+    useState<Anamnese | null>(null);
+  const [caminhoBaixarAnamnese, setCaminhoBaixarAnamnese] =
+    useState<string>("");
+  const [baixandoAnamnese, setBaixandoAnamnese] = useState<boolean>(false);
+  const [anamneseParaExcluir, setAnamneseParaExcluir] =
+    useState<Anamnese | null>(null);
+  const [excluindoAnamnese, setExcluindoAnamnese] = useState<boolean>(false);
+
   useEffect(() => {
     if (!id) return;
     let cancelado = false;
@@ -72,13 +108,26 @@ export function PacientePerfil() {
       pacienteObter(id),
       sessoesListar(id).catch(() => [] as Sessao[]),
       agendamentoProximoPaciente(id).catch(() => null),
+      anamnesesListar(id).catch(() => [] as Anamnese[]),
+      horariosSemanaisListar(id).catch(() => [] as HorarioSemanal[]),
     ])
-      .then(([dadosPaciente, listaSessoes, proxAg]) => {
-        if (!cancelado) {
-          const sessoesValidas = Array.isArray(listaSessoes)
-            ? ordenarSessoesDecrescente(listaSessoes)
-            : [];
-          setSessoes(sessoesValidas);
+      .then(
+        ([
+          dadosPaciente,
+          listaSessoes,
+          proxAg,
+          listaAnamneses,
+          listaHorariosFixos,
+        ]) => {
+          if (!cancelado) {
+            const sessoesValidas = Array.isArray(listaSessoes)
+              ? ordenarSessoesDecrescente(listaSessoes)
+              : [];
+            setSessoes(sessoesValidas);
+            setAnamneses(Array.isArray(listaAnamneses) ? listaAnamneses : []);
+            setHorariosFixos(
+              Array.isArray(listaHorariosFixos) ? listaHorariosFixos : [],
+            );
           setProximoAgendamento(
             proxAg && typeof proxAg === "object" && "data" in proxAg
               ? proxAg
@@ -169,6 +218,147 @@ export function PacientePerfil() {
     }
   }
 
+  async function recarregarAnamneses(pacienteId: string) {
+    try {
+      const lista = await anamnesesListar(pacienteId);
+      setAnamneses(Array.isArray(lista) ? lista : []);
+    } catch {
+      // Ignora erro no recarregamento silencioso
+    }
+  }
+
+  function abrirModalAnamneseComArquivo(arquivo: File | null) {
+    setArquivoAnamnese(arquivo);
+    const caminhoNativo =
+      arquivo && "path" in arquivo && typeof (arquivo as { path?: unknown }).path === "string"
+        ? ((arquivo as { path: string }).path ?? "")
+        : "";
+    setCaminhoManualAnamnese(caminhoNativo);
+    setErroAnamnese(null);
+    setModalAnamneseAberto(true);
+  }
+
+  function aoSelecionarArquivoAnamnese(e: React.ChangeEvent<HTMLInputElement>) {
+    const arq = e.target.files?.[0] ?? null;
+    e.target.value = "";
+    if (arq) {
+      abrirModalAnamneseComArquivo(arq);
+    }
+  }
+
+  function aoSoltarArquivoAnamnese(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setArrastandoAnamnese(false);
+    const arq = e.dataTransfer?.files?.[0] ?? null;
+    if (arq) {
+      abrirModalAnamneseComArquivo(arq);
+    }
+  }
+
+  async function confirmarAnexarAnamnese() {
+    if (!paciente) return;
+    setErroAnamnese(null);
+
+    if (!arquivoAnamnese && !caminhoManualAnamnese.trim()) {
+      setErroAnamnese("Selecione um arquivo de anamnese para anexar.");
+      return;
+    }
+
+    setAnexandoAnamnese(true);
+    try {
+      let caminhoOrigem = caminhoManualAnamnese.trim();
+      let nomeOriginal: string | null = null;
+      let conteudoBase64: string | null = null;
+
+      if (arquivoAnamnese) {
+        nomeOriginal = arquivoAnamnese.name;
+        const caminhoNativo =
+          "path" in arquivoAnamnese &&
+          typeof (arquivoAnamnese as { path?: unknown }).path === "string"
+            ? (arquivoAnamnese as { path: string }).path.trim()
+            : "";
+
+        if (caminhoNativo) {
+          caminhoOrigem = caminhoNativo;
+        } else {
+          caminhoOrigem = arquivoAnamnese.name;
+          conteudoBase64 = await lerArquivoComoBase64(arquivoAnamnese);
+        }
+      }
+
+      const anexada = await anamneseAnexar({
+        paciente_id: paciente.id,
+        caminho_origem: caminhoOrigem,
+        nome_original: nomeOriginal,
+        conteudo_base64: conteudoBase64,
+      });
+
+      setModalAnamneseAberto(false);
+      setArquivoAnamnese(null);
+      setCaminhoManualAnamnese("");
+      setToastSucesso(
+        `Anamnese "${anexada.nome_original}" anexada com sucesso.`,
+      );
+      await recarregarAnamneses(paciente.id);
+    } catch (erro) {
+      setErroAnamnese(extrairErroApi(erro).mensagem);
+    } finally {
+      setAnexandoAnamnese(false);
+    }
+  }
+
+  async function acionarAbrirAnamnese(item: Anamnese) {
+    setErroMensagem(null);
+    try {
+      await anamneseAbrir(item.id);
+      setToastSucesso(`Abrindo "${item.nome_original}"...`);
+    } catch (erro) {
+      setErroMensagem(extrairErroApi(erro).mensagem);
+    }
+  }
+
+  function abrirModalBaixarAnamnese(item: Anamnese) {
+    setAnamneseParaBaixar(item);
+    setCaminhoBaixarAnamnese("");
+  }
+
+  async function confirmarBaixarAnamnese() {
+    if (!anamneseParaBaixar) return;
+    setBaixandoAnamnese(true);
+    setErroMensagem(null);
+    try {
+      const caminhoSalvo = await anamneseBaixar(
+        anamneseParaBaixar.id,
+        caminhoBaixarAnamnese.trim() || null,
+      );
+      setAnamneseParaBaixar(null);
+      setCaminhoBaixarAnamnese("");
+      setToastSucesso(`Anamnese salva em: ${caminhoSalvo}`);
+    } catch (erro) {
+      setErroMensagem(extrairErroApi(erro).mensagem);
+    } finally {
+      setBaixandoAnamnese(false);
+    }
+  }
+
+  async function confirmarExclusaoAnamnese() {
+    if (!anamneseParaExcluir || !paciente) return;
+    setExcluindoAnamnese(true);
+    setErroMensagem(null);
+    try {
+      const nome = anamneseParaExcluir.nome_original;
+      await anamneseExcluir(anamneseParaExcluir.id);
+      setAnamneseParaExcluir(null);
+      setToastSucesso(`Anamnese "${nome}" excluída com sucesso.`);
+      await recarregarAnamneses(paciente.id);
+    } catch (erro) {
+      setErroMensagem(extrairErroApi(erro).mensagem);
+    } finally {
+      setExcluindoAnamnese(false);
+    }
+  }
+
   async function alterarStatus(novoStatus: "ativo" | "inativo") {
     if (!paciente) return;
     setProcessandoAcao(true);
@@ -217,7 +407,7 @@ export function PacientePerfil() {
 
   if (carregando) {
     return (
-      <div className="max-w-5xl mx-auto p-6 bg-fundo-claro border border-rosa-claro rounded-2xl text-base text-texto">
+      <div className="w-full max-w-[1600px] mx-auto p-6 bg-fundo-claro border border-rosa-claro rounded-2xl text-base text-texto">
         Carregando perfil do paciente...
       </div>
     );
@@ -225,7 +415,7 @@ export function PacientePerfil() {
 
   if (!paciente) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="w-full max-w-[1600px] mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-malva">Perfil do Paciente</h2>
           <Button variante="contorno" onClick={() => navigate("/pacientes")}>
@@ -245,7 +435,7 @@ export function PacientePerfil() {
   const idadeFormatada = formatarIdadeComNascimento(paciente.data_nascimento);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
         <Button variante="contorno" onClick={() => navigate("/pacientes")}>
           Voltar para pacientes
@@ -305,6 +495,17 @@ export function PacientePerfil() {
               {proximoAgendamento
                 ? `${formatarDataBr(proximoAgendamento.data)} às ${proximoAgendamento.hora_inicio}`
                 : "Nenhum agendado"}
+            </span>
+            <span data-testid="horarios-fixos-paciente">
+              <strong>Horário fixo semanal:</strong>{" "}
+              {horariosFixos.length > 0
+                ? horariosFixos
+                    .map(
+                      (h) =>
+                        `${formatarDiaSemanaCurtoBr(h.dia_semana)} às ${h.hora_inicio}`,
+                    )
+                    .join(" · ")
+                : "Nenhum definido"}
             </span>
           </div>
 
@@ -370,6 +571,117 @@ export function PacientePerfil() {
           </div>
         </section>
       )}
+
+      {/* Seção Anamnese (RN19, RN65–RN69) — documento único e compacto */}
+      <section
+        aria-label="Anamnese do paciente"
+        data-testid="secao-anamnese"
+        className="bg-fundo-claro border border-rosa-claro rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs"
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-rosa-claro pb-3">
+          <div>
+            <h3 className="text-xl font-bold text-malva">Anamnese</h3>
+            <p className="text-base text-lilas-acinzentado">
+              Ficha clínica de anamnese anexada ao paciente.
+            </p>
+          </div>
+        </div>
+
+        {anamneses.length === 0 ? (
+          <div
+            data-testid="estado-vazio-anamnese"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setArrastandoAnamnese(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setArrastandoAnamnese(false);
+            }}
+            onDrop={aoSoltarArquivoAnamnese}
+            className={`p-4 rounded-xl border border-dashed flex flex-col sm:flex-row items-center justify-between gap-4 text-base text-texto transition-colors ${
+              arrastandoAnamnese
+                ? "border-malva bg-rosa-claro/40"
+                : "border-rosa-claro bg-fundo"
+            }`}
+          >
+            <div className="space-y-0.5 text-center sm:text-left">
+              <span className="font-semibold text-texto block">
+                Nenhuma anamnese anexada
+              </span>
+              <p className="text-base text-lilas-acinzentado">
+                Arraste um arquivo (PDF, Word ou imagem) aqui ou clique em &ldquo;Anexar anamnese&rdquo;.
+              </p>
+            </div>
+            <Button
+              variante="primario"
+              className="shrink-0"
+              onClick={() => abrirModalAnamneseComArquivo(null)}
+            >
+              Anexar anamnese
+            </Button>
+          </div>
+        ) : (
+          (() => {
+            const doc = anamneses[0];
+            const tipoRotulo = obterRotuloTipoArquivo(
+              doc.nome_original,
+              doc.mime,
+            );
+            return (
+              <div
+                data-testid={`item-anamnese-${doc.id}`}
+                className="p-3.5 rounded-xl bg-fundo border border-rosa-claro flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="inline-block px-2.5 py-0.5 rounded-lg bg-malva text-white text-base font-bold">
+                      {tipoRotulo}
+                    </span>
+                    <span className="text-base font-bold text-texto truncate">
+                      {doc.nome_original}
+                    </span>
+                  </div>
+                  <p className="text-base text-lilas-acinzentado">
+                    Tamanho:{" "}
+                    <strong>{formatarTamanhoBytes(doc.tamanho_bytes)}</strong> ·
+                    Enviado em: <strong>{formatarDataBr(doc.enviado_em)}</strong>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  <Button
+                    variante="primario"
+                    tamanho="compacto"
+                    onClick={() => void acionarAbrirAnamnese(doc)}
+                    aria-label={`Abrir ${doc.nome_original}`}
+                  >
+                    Abrir
+                  </Button>
+                  <Button
+                    variante="secundario"
+                    tamanho="compacto"
+                    onClick={() => abrirModalBaixarAnamnese(doc)}
+                    aria-label={`Baixar ${doc.nome_original}`}
+                  >
+                    Baixar
+                  </Button>
+                  <Button
+                    variante="perigo"
+                    tamanho="compacto"
+                    onClick={() => setAnamneseParaExcluir(doc)}
+                    aria-label={`Excluir ${doc.nome_original}`}
+                  >
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+            );
+          })()
+        )}
+      </section>
 
       {/* Histórico compacto de Sessões (RN19, RN24–RN27) */}
       <section
@@ -440,7 +752,7 @@ export function PacientePerfil() {
                     <div className="flex items-center gap-2">
                       <Button
                         variante="contorno"
-                        className="px-3 py-1.5"
+                        tamanho="compacto"
                         onClick={() => abrirEditarSessao(sessao)}
                         aria-label={`Editar sessão de ${formatarDataBr(sessao.data)}`}
                       >
@@ -448,7 +760,7 @@ export function PacientePerfil() {
                       </Button>
                       <Button
                         variante="perigo"
-                        className="px-3 py-1.5"
+                        tamanho="compacto"
                         onClick={() => setSessaoParaExcluir(sessao)}
                         aria-label={`Excluir sessão de ${formatarDataBr(sessao.data)}`}
                       >
@@ -691,6 +1003,147 @@ export function PacientePerfil() {
           />
         </div>
       </Modal>
+
+      {/* Input oculto para anexar anamnese */}
+      <input
+        ref={inputAnamneseRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,.ods,.txt,.jpg,.jpeg,.png"
+        data-testid="input-arquivo-anamnese"
+        className="hidden"
+        onChange={aoSelecionarArquivoAnamnese}
+      />
+
+      {/* Modal para anexar anamnese (RN66, RN68) */}
+      <Modal
+        aberto={modalAnamneseAberto}
+        titulo="Anexar anamnese"
+        aoFechar={() => setModalAnamneseAberto(false)}
+        larguraMax="md"
+        rodape={
+          <>
+            <Button
+              variante="contorno"
+              onClick={() => setModalAnamneseAberto(false)}
+              disabled={anexandoAnamnese}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variante="primario"
+              data-testid="botao-confirmar-anexo-anamnese"
+              onClick={() => void confirmarAnexarAnamnese()}
+              disabled={anexandoAnamnese}
+            >
+              {anexandoAnamnese ? "Criptografando e anexando..." : "Salvar anexo"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {arquivoAnamnese ? (
+            <div className="p-4 rounded-xl bg-rosa-claro/30 border border-rosa-claro flex items-center justify-between gap-3">
+              <div>
+                <p className="text-base font-bold text-texto">
+                  {arquivoAnamnese.name}
+                </p>
+                <p className="text-base text-lilas-acinzentado">
+                  Tamanho: {formatarTamanhoBytes(arquivoAnamnese.size)}
+                </p>
+              </div>
+              <Button
+                variante="contorno"
+                onClick={() => inputAnamneseRef.current?.click()}
+              >
+                Trocar
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-fundo border border-rosa-claro">
+                <span className="text-base text-texto">
+                  Selecione o arquivo de anamnese:
+                </span>
+                <Button
+                  variante="secundario"
+                  onClick={() => inputAnamneseRef.current?.click()}
+                >
+                  Escolher arquivo
+                </Button>
+              </div>
+              <Input
+                rotulo="Ou informe o caminho completo do arquivo"
+                placeholder="Ex.: C:\Documentos\anamnese.pdf"
+                value={caminhoManualAnamnese}
+                onChange={(e) => setCaminhoManualAnamnese(e.target.value)}
+              />
+            </div>
+          )}
+
+          {erroAnamnese && (
+            <p
+              role="alert"
+              className="text-base font-semibold text-red-700 bg-red-50 border border-red-300 rounded-xl p-3"
+            >
+              {erroAnamnese}
+            </p>
+          )}
+        </div>
+      </Modal>
+
+      {/* Modal para baixar cópia da anamnese (RN68) */}
+      <Modal
+        aberto={Boolean(anamneseParaBaixar)}
+        titulo="Baixar cópia da anamnese"
+        aoFechar={() => setAnamneseParaBaixar(null)}
+        larguraMax="md"
+        rodape={
+          <>
+            <Button
+              variante="contorno"
+              onClick={() => setAnamneseParaBaixar(null)}
+              disabled={baixandoAnamnese}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variante="primario"
+              data-testid="botao-confirmar-baixar-anamnese"
+              onClick={() => void confirmarBaixarAnamnese()}
+              disabled={baixandoAnamnese}
+            >
+              {baixandoAnamnese ? "Baixando..." : "Salvar cópia"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-base text-texto">
+            Uma cópia descriptografada de{" "}
+            <strong>{anamneseParaBaixar?.nome_original}</strong> será salva no
+            seu computador.
+          </p>
+          <Input
+            rotulo="Pasta ou caminho de destino (deixe em branco para salvar em Downloads)"
+            placeholder="Pasta Downloads padrão"
+            value={caminhoBaixarAnamnese}
+            onChange={(e) => setCaminhoBaixarAnamnese(e.target.value)}
+          />
+        </div>
+      </Modal>
+
+      {/* Diálogo de confirmação para excluir anamnese (RN68) */}
+      <ConfirmDialog
+        aberto={Boolean(anamneseParaExcluir)}
+        titulo="Excluir anamnese"
+        mensagem="Tem certeza de que deseja excluir este arquivo de anamnese? Esta ação removerá definitivamente o arquivo criptografado."
+        detalheDestaque={anamneseParaExcluir?.nome_original}
+        rotuloConfirmar="Sim, excluir anamnese"
+        destrutivo={true}
+        carregando={excluindoAnamnese}
+        aoConfirmar={() => void confirmarExclusaoAnamnese()}
+        aoCancelar={() => setAnamneseParaExcluir(null)}
+      />
 
       <Toast
         mensagem={erroMensagem ?? toastSucesso}

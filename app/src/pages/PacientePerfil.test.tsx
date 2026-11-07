@@ -65,6 +65,24 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
           conflito_descricao: null,
         });
       }
+      if (cmd === "horarios_semanais_listar") {
+        return Promise.resolve([
+          {
+            id: "h-joao-1",
+            paciente_id: "p-joao",
+            paciente_nome: "João da Conceição",
+            paciente_status: "ativo",
+            dia_semana: 1,
+            hora_inicio: "14:00",
+            duracao_min: 50,
+            observacao: null,
+            criado_em: "2026-11-01T10:00:00Z",
+            atualizado_em: "2026-11-01T10:00:00Z",
+            conflito: false,
+            conflito_descricao: null,
+          },
+        ]);
+      }
       return Promise.resolve(null);
     });
 
@@ -101,6 +119,11 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
     expect(
       screen.getByTestId("proximo-agendamento-paciente"),
     ).toHaveTextContent("Próximo agendamento: 05/11/2026 às 15:30");
+
+    // Horário fixo semanal no cabeçalho (RN95)
+    expect(screen.getByTestId("horarios-fixos-paciente")).toHaveTextContent(
+      "Horário fixo semanal: Seg às 14:00",
+    );
 
     // Mais opções começa recolhido (RN18)
     expect(screen.queryByTestId("secao-mais-opcoes")).not.toBeInTheDocument();
@@ -429,5 +452,148 @@ describe("Tela T07 — Perfil do Paciente (F3-T4)", () => {
     // Total atualizado para 2 e última sessão passa a ser 18/10/2026 (RN27)
     expect(secaoSessoes).toHaveTextContent("Total de sessões: 2");
     expect(secaoSessoes).toHaveTextContent("Última sessão: 18/10/2026");
+  });
+
+  it("exibe seção Anamnese entre o cabeçalho e as sessões, e estado vazio quando sem anexo (RN19, RN65, RN69)", async () => {
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "paciente_obter") return Promise.resolve(PACIENTE_BASE);
+      if (cmd === "sessoes_listar") return Promise.resolve([]);
+      if (cmd === "agendamento_proximo_paciente") return Promise.resolve(null);
+      if (cmd === "anamneses_listar") return Promise.resolve([]);
+      return Promise.resolve(null);
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/pacientes/p-joao"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/pacientes/:id" element={<PacientePerfil />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "João da Conceição" })).toBeInTheDocument();
+    });
+
+    // Seção Anamnese presente (RN65)
+    const secaoAnamnese = screen.getByTestId("secao-anamnese");
+    expect(secaoAnamnese).toBeInTheDocument();
+    expect(screen.getByTestId("estado-vazio-anamnese")).toHaveTextContent("Nenhuma anamnese anexada");
+    expect(screen.getAllByRole("button", { name: "Anexar anamnese" }).length).toBeGreaterThan(0);
+
+    // Ordem no DOM: Cabeçalho -> Anamnese -> Histórico de Sessões -> Dados cadastrais (RN19)
+    const cabecalho = screen.getByRole("banner", { name: "Cabeçalho do paciente" });
+    const secaoSessoes = screen.getByTestId("secao-historico-sessoes");
+    const secaoDados = screen.getByRole("region", { name: "Dados cadastrais" });
+
+    expect(cabecalho.compareDocumentPosition(secaoAnamnese)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(secaoAnamnese.compareDocumentPosition(secaoSessoes)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(secaoSessoes.compareDocumentPosition(secaoDados)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("permite anexar, listar, abrir, baixar e excluir anexo de anamnese com confirmação (RN66–RN68)", async () => {
+    const anamnesesMock = [
+      {
+        id: "anam-1",
+        paciente_id: "p-joao",
+        nome_original: "Ficha_Anamnese_Inicial.pdf",
+        mime: "application/pdf",
+        tamanho_bytes: 1024 * 80,
+        sha256: "sha-anam-1",
+        enviado_em: "2026-10-05T09:00:00Z",
+      },
+    ];
+    let listaAnamneses = [...anamnesesMock];
+
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "paciente_obter") return Promise.resolve(PACIENTE_BASE);
+      if (cmd === "sessoes_listar") return Promise.resolve([]);
+      if (cmd === "agendamento_proximo_paciente") return Promise.resolve(null);
+      if (cmd === "anamneses_listar") return Promise.resolve(listaAnamneses);
+      if (cmd === "anamnese_anexar") {
+        const nova = {
+          id: "anam-2",
+          paciente_id: "p-joao",
+          nome_original: "Historico_Escolar.docx",
+          mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          tamanho_bytes: 1024 * 30,
+          sha256: "sha-anam-2",
+          enviado_em: "2026-11-01T15:00:00Z",
+        };
+        listaAnamneses = [nova];
+        return Promise.resolve(nova);
+      }
+      if (cmd === "anamnese_abrir") return Promise.resolve("/tmp/anamnese.pdf");
+      if (cmd === "anamnese_baixar") return Promise.resolve("/home/user/Downloads/anamnese.pdf");
+      if (cmd === "anamnese_excluir") {
+        listaAnamneses = [];
+        return Promise.resolve();
+      }
+      return Promise.resolve(null);
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/pacientes/p-joao"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/pacientes/:id" element={<PacientePerfil />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    // 1. Lista anamnese existente com nome, data e tamanho (RN68)
+    expect(await screen.findByText("Ficha_Anamnese_Inicial.pdf")).toBeInTheDocument();
+    expect(screen.getByText(/80 KB/)).toBeInTheDocument();
+    expect(screen.getByText(/05\/10\/2026/)).toBeInTheDocument();
+
+    // 2. Abrir anamnese (RN68)
+    fireEvent.click(screen.getByRole("button", { name: "Abrir Ficha_Anamnese_Inicial.pdf" }));
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith("anamnese_abrir", { id: "anam-1" });
+    });
+
+    // 3. Baixar anamnese (RN68)
+    fireEvent.click(screen.getByRole("button", { name: "Baixar Ficha_Anamnese_Inicial.pdf" }));
+    expect(screen.getByRole("heading", { name: "Baixar cópia da anamnese" })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("botao-confirmar-baixar-anamnese"));
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith("anamnese_baixar", {
+        id: "anam-1",
+        caminhoDestino: null,
+        caminho_destino: null,
+      });
+    });
+
+    // 4. Excluir anamnese com diálogo de confirmação (RN68)
+    fireEvent.click(screen.getByRole("button", { name: "Excluir Ficha_Anamnese_Inicial.pdf" }));
+    expect(screen.getByRole("dialog", { name: "Excluir anamnese" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sim, excluir anamnese" }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith("anamnese_excluir", { id: "anam-1" });
+    });
+
+    // 5. Após exclusão, estado vazio é exibido e permite anexar nova anamnese via modal / arquivo (RN66, RN68)
+    expect(await screen.findByTestId("estado-vazio-anamnese")).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Anexar anamnese" })[0]);
+    expect(screen.getByRole("heading", { name: "Anexar anamnese" })).toBeInTheDocument();
+    const inputCaminho = screen.getByLabelText(/Ou informe o caminho completo do arquivo/i);
+    fireEvent.change(inputCaminho, { target: { value: "/home/felipe/docs/Historico_Escolar.docx" } });
+    fireEvent.click(screen.getByTestId("botao-confirmar-anexo-anamnese"));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "anamnese_anexar",
+        expect.objectContaining({
+          paciente_id: "p-joao",
+          caminho_origem: "/home/felipe/docs/Historico_Escolar.docx",
+        }),
+      );
+    });
   });
 });

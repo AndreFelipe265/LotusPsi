@@ -10,16 +10,103 @@ use crate::state::AppState;
 /// Chave na tabela `config` onde fica salvo o índice da última mensagem de boas-vindas exibida (RN62).
 pub const CHAVE_CONFIG_BOAS_VINDAS_INDICE: &str = "boas_vindas_ultimo_indice";
 
+/// Chave na tabela `config` onde fica salva a fila de índices restantes do ciclo embaralhado (RN60, RN62).
+pub const CHAVE_CONFIG_BOAS_VINDAS_FILA: &str = "boas_vindas_fila";
+
+/// Chave na tabela `config` onde fica salva a mensagem padrão de parabéns no WhatsApp (RN32).
+pub const CHAVE_CONFIG_MENSAGEM_ANIVERSARIO: &str = "mensagem_aniversario";
+
+/// Chave na tabela `config` onde fica salva a data/hora ISO 8601 do último backup realizado (RN53).
+pub const CHAVE_CONFIG_ULTIMO_BACKUP: &str = "ultimo_backup";
+
+/// Mensagem padrão de aniversário quando ainda não foi personalizada pela usuária (RN32).
+pub const MENSAGEM_ANIVERSARIO_PADRAO: &str =
+    "Olá, {primeiro_nome}! Feliz aniversário! Desejo um novo ano cheio de saúde e alegrias. Um abraço, Louriedna.";
+
 /// Lista fixa de mensagens de boas-vindas do MVP (RN61).
 /// Inclui obrigatoriamente "Eu te amo, mãe! ❤️".
-pub const MENSAGENS_BOAS_VINDAS: [&str; 6] = [
+pub const MENSAGENS_BOAS_VINDAS: [&str; 9] = [
     "Eu te amo, mãe! ❤️",
-    "Bom te ver de novo, Louriedna!",
     "Que seu dia seja leve e cheio de bons encontros.",
-    "Você faz a diferença na vida de muita gente.",
     "Respire fundo: hoje vai ser um bom dia.",
     "Obrigado por cuidar de tantas pessoas com tanto carinho.",
+    "Você faz a diferença na vida de muita gente.",
+    "Cada pessoa tem sua história, e você ajuda a torná-la mais leve.",
+    "Seu trabalho faz diferença, mesmo quando você não percebe.",
+    "Acolher é respeitar o tempo e a história de cada pessoa.",
+    "Não se esqueça de cuidar de quem também cuida.",
 ];
+
+/// Embaralha uma fatia de índices utilizando Fisher-Yates (RN60–RN62).
+pub fn embaralhar_com_semente(itens: &mut [usize], mut rng: impl FnMut() -> u64) {
+    for i in (1..itens.len()).rev() {
+        let j = (rng() as usize) % (i + 1);
+        itens.swap(i, j);
+    }
+}
+
+/// Gera uma nova lista com todas as frases embaralhadas [0..total-1], garantindo que a primeira
+/// frase dessa nova lista seja diferente da última frase da lista passada (RN60–RN62).
+pub fn gerar_novo_ciclo_embaralhado(
+    total: usize,
+    ultimo_indice: Option<usize>,
+    mut rng: impl FnMut() -> u64,
+) -> Vec<usize> {
+    if total == 0 {
+        return Vec::new();
+    }
+    let mut ciclo: Vec<usize> = (0..total).collect();
+    if total == 1 {
+        return ciclo;
+    }
+
+    embaralhar_com_semente(&mut ciclo, &mut rng);
+
+    if let Some(ultimo) = ultimo_indice {
+        if ciclo[0] == ultimo {
+            // Garante que o primeiro da nova lista seja diferente do último da lista passada
+            let deslocamento = 1 + ((rng() as usize) % (total - 1));
+            ciclo.swap(0, deslocamento);
+        }
+    }
+
+    ciclo
+}
+
+/// Consome o próximo índice da fila atual ou cria uma nova lista embaralhada quando a anterior termina,
+/// garantindo que a primeira frase da nova lista seja diferente da última da anterior.
+pub fn avancar_ciclo_boas_vindas(
+    mut fila: Vec<usize>,
+    ultimo_indice: Option<usize>,
+    total: usize,
+    mut rng: impl FnMut() -> u64,
+) -> (usize, Vec<usize>) {
+    if total == 0 {
+        return (0, Vec::new());
+    }
+    if total == 1 {
+        return (0, Vec::new());
+    }
+
+    let fila_valida = !fila.is_empty() && fila.iter().all(|&idx| idx < total);
+    if !fila_valida {
+        fila = gerar_novo_ciclo_embaralhado(total, ultimo_indice, &mut rng);
+    }
+
+    // Se o elemento na ponta da fila coincidir com o último índice (ex.: caso de borda), desvia
+    if let Some(ultimo) = ultimo_indice {
+        if !fila.is_empty() && fila[0] == ultimo {
+            if fila.len() > 1 {
+                fila.swap(0, 1);
+            } else {
+                fila = gerar_novo_ciclo_embaralhado(total, Some(ultimo), &mut rng);
+            }
+        }
+    }
+
+    let escolhido = fila.remove(0);
+    (escolhido, fila)
+}
 
 /// Sorteia o próximo índice da lista sem repetir o `ultimo_indice` (RN60, RN62).
 pub fn sortear_proximo_indice_boas_vindas(
@@ -71,19 +158,50 @@ pub fn rotacionar_boas_vindas_com_semente_conn(
     conn: &Connection,
     aleatorio: u64,
 ) -> Resultado<String> {
+    let total = MENSAGENS_BOAS_VINDAS.len();
     let ultimo_indice = ler_config_conn(conn, CHAVE_CONFIG_BOAS_VINDAS_INDICE)?
-        .and_then(|v| v.trim().parse::<usize>().ok());
+        .and_then(|v| v.trim().parse::<usize>().ok())
+        .filter(|&idx| idx < total);
 
-    let novo_indice =
-        sortear_proximo_indice_boas_vindas(ultimo_indice, MENSAGENS_BOAS_VINDAS.len(), aleatorio);
+    let fila_atual: Vec<usize> = ler_config_conn(conn, CHAVE_CONFIG_BOAS_VINDAS_FILA)?
+        .map(|v| {
+            v.split(',')
+                .filter_map(|s| s.trim().parse::<usize>().ok())
+                .filter(|&idx| idx < total)
+                .collect()
+        })
+        .unwrap_or_default();
 
+    let mut estado_rng = if aleatorio == 0 { 0x853c49e6748fea9b } else { aleatorio };
+    let (escolhido, nova_fila) = avancar_ciclo_boas_vindas(
+        fila_atual,
+        ultimo_indice,
+        total,
+        || {
+            estado_rng ^= estado_rng << 13;
+            estado_rng ^= estado_rng >> 7;
+            estado_rng ^= estado_rng << 17;
+            if estado_rng == 0 {
+                estado_rng = 0x853c49e6748fea9b;
+            }
+            estado_rng
+        },
+    );
+
+    let fila_serializada = nova_fila
+        .iter()
+        .map(|n| n.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+
+    definir_config_conn(conn, CHAVE_CONFIG_BOAS_VINDAS_FILA, &fila_serializada)?;
     definir_config_conn(
         conn,
         CHAVE_CONFIG_BOAS_VINDAS_INDICE,
-        &novo_indice.to_string(),
+        &escolhido.to_string(),
     )?;
 
-    Ok(MENSAGENS_BOAS_VINDAS[novo_indice].to_string())
+    Ok(MENSAGENS_BOAS_VINDAS[escolhido].to_string())
 }
 
 /// Obtém a mensagem de boas-vindas atual da sessão autenticada.
@@ -159,14 +277,20 @@ mod tests {
 
     #[test]
     fn lista_boas_vindas_inclui_eu_te_amo_mae_e_demais_mensagens_rn61() {
-        assert_eq!(MENSAGENS_BOAS_VINDAS.len(), 6);
+        assert_eq!(MENSAGENS_BOAS_VINDAS.len(), 9);
         assert!(MENSAGENS_BOAS_VINDAS.contains(&"Eu te amo, mãe! ❤️"));
-        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Bom te ver de novo, Louriedna!"));
         assert!(MENSAGENS_BOAS_VINDAS.contains(&"Que seu dia seja leve e cheio de bons encontros."));
-        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Você faz a diferença na vida de muita gente."));
         assert!(MENSAGENS_BOAS_VINDAS.contains(&"Respire fundo: hoje vai ser um bom dia."));
         assert!(MENSAGENS_BOAS_VINDAS
             .contains(&"Obrigado por cuidar de tantas pessoas com tanto carinho."));
+        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Você faz a diferença na vida de muita gente."));
+        assert!(MENSAGENS_BOAS_VINDAS
+            .contains(&"Cada pessoa tem sua história, e você ajuda a torná-la mais leve."));
+        assert!(MENSAGENS_BOAS_VINDAS
+            .contains(&"Seu trabalho faz diferença, mesmo quando você não percebe."));
+        assert!(MENSAGENS_BOAS_VINDAS
+            .contains(&"Acolher é respeitar o tempo e a história de cada pessoa."));
+        assert!(MENSAGENS_BOAS_VINDAS.contains(&"Não se esqueça de cuidar de quem também cuida."));
     }
 
     #[test]
@@ -182,6 +306,68 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn novo_ciclo_embaralhado_contem_todos_os_indices_e_primeiro_difere_do_ultimo_da_lista_passada() {
+        let total = MENSAGENS_BOAS_VINDAS.len();
+        for ultimo in 0..total {
+            for semente in 1..=50u64 {
+                let mut rng_seed = semente;
+                let ciclo = gerar_novo_ciclo_embaralhado(total, Some(ultimo), || {
+                    rng_seed ^= rng_seed << 13;
+                    rng_seed ^= rng_seed >> 7;
+                    rng_seed ^= rng_seed << 17;
+                    rng_seed
+                });
+
+                assert_eq!(ciclo.len(), total);
+                // Deve conter todos os índices de 0 a total - 1 sem repetição
+                let mut ordenado = ciclo.clone();
+                ordenado.sort();
+                assert_eq!(ordenado, (0..total).collect::<Vec<_>>());
+
+                // O primeiro elemento da nova lista DEVE ser diferente do último da lista passada
+                assert_ne!(
+                    ciclo[0], ultimo,
+                    "A primeira frase do novo ciclo deve ser diferente da última frase do ciclo anterior"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ciclo_completo_passa_por_todas_as_frases_sem_repeticao_e_persiste_em_config() {
+        let total = MENSAGENS_BOAS_VINDAS.len();
+        let mut fila = Vec::new();
+        let mut ultimo = None;
+        let mut vistas = std::collections::HashSet::new();
+        let mut seed = 42u64;
+
+        // Ciclo 1: 9 passos
+        for _ in 0..total {
+            let (escolhido, nova_fila) = avancar_ciclo_boas_vindas(fila, ultimo, total, || {
+                seed = seed.wrapping_add(1);
+                seed
+            });
+            assert!(!vistas.contains(&escolhido));
+            vistas.insert(escolhido);
+            ultimo = Some(escolhido);
+            fila = nova_fila;
+        }
+        assert_eq!(vistas.len(), total);
+        assert!(fila.is_empty(), "Ao fim do ciclo, a fila deve estar vazia");
+
+        // Ciclo 2, passo 1: primeira frase do novo ciclo DEVE ser diferente da última do ciclo 1
+        let ultimo_ciclo_1 = ultimo.expect("último do ciclo 1");
+        let (escolhido_ciclo_2, _) = avancar_ciclo_boas_vindas(fila, ultimo, total, || {
+            seed = seed.wrapping_add(1);
+            seed
+        });
+        assert_ne!(
+            escolhido_ciclo_2, ultimo_ciclo_1,
+            "Primeira frase do ciclo 2 deve ser diferente da última frase do ciclo 1"
+        );
     }
 
     #[test]

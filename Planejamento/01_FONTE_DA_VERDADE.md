@@ -7,7 +7,7 @@
 > - Se algo não estiver definido aqui, **não invente**: pergunte ao desenvolvedor (Felipe) e registre a decisão na seção 12 (Registro de Decisões).
 > - Só altere este arquivo quando o desenvolvedor aprovar a mudança, e sempre registre a alteração na seção 12.
 
-**Versão:** 1.1 — 02/11/2026
+**Versão:** 1.2 — 06/11/2026
 
 ---
 
@@ -89,7 +89,7 @@
   - CSP restritiva, sem carregar recursos remotos (fontes devem ser locais).
 - Dependências fixadas (`Cargo.lock` e `package-lock.json` versionados).
 
-> ⚠️ **Pendente (confirmar com a usuária):** o sistema operacional do computador dela. Assume-se Windows 10/11.
+> **Sistema operacional confirmado da usuária:** Windows 10/11 (64-bit).
 
 ---
 
@@ -106,12 +106,13 @@
 
 **Visual:**
 - Logo/monograma "LC" com borboletas. Exportar do PDF para `src/assets/`.
+- Ícone e logo da aplicação na barra de tarefas e na janela customizados com a identidade LC (tarefa F8-T4).
 - Fonte cursiva só no logo. Interface em sans-serif legível (ex.: *Nunito* ou *Inter*), **embutida localmente**.
 
 **Princípios de interface:**
 - Texto base de no mínimo 16px e botões grandes com rótulos em texto (não apenas ícones).
 - No máximo 2 cliques para chegar a qualquer função principal.
-- Menu lateral fixo: **Início · Pacientes · Agenda · Documentos · Configurações** (+ Financeiro na Fase 2).
+- Menu lateral fixo: **Início · Pacientes · Agenda · Financeiro · Documentos · Configurações** (+ botão Sair).
 - Toda ação destrutiva pede confirmação, mostrando claramente o que será apagado.
 - Mensagens amigáveis, sem jargão técnico.
 - Contraste mínimo WCAG AA. Texto branco só sobre `malva` ou cores mais escuras.
@@ -214,17 +215,21 @@
   - Confirma que os dados atuais serão substituídos.
   - Cria antes, automaticamente, uma cópia de segurança dos dados atuais.
 - **RN55** — Depois de gerar o backup, validar que o arquivo abre (verificação de integridade).
-- **RN56** — O backup inclui também os anexos de anamnese (RN67) e os agendamentos (RN70).
+- **RN56** — O backup inclui também os anexos de anamnese (RN67), os agendamentos (RN70), os lançamentos financeiros (RN80) e a grade semanal de horários fixos (RN90).
 
 ### 5.7 Mensagens de boas-vindas
-- **RN60** — A cada login bem-sucedido, a saudação do painel (T04) mostra uma mensagem escolhida de uma lista, diferente da exibida no login anterior.
-- **RN61** — A lista inicial (embutida no app) inclui obrigatoriamente **"Eu te amo, mãe! ❤️"**. Demais mensagens iniciais:
-  - *"Bom te ver de novo, Louriedna!"*
+- **RN60** — A cada login bem-sucedido, o sistema consome uma mensagem de boas-vindas a partir de uma lista aleatória com todas as frases embaralhadas, salva em memória/banco (`config`). Quando terminar de passar por toda a lista (após exibir todas as frases uma vez), no próximo login é criada outra lista aleatória embaralhada, garantindo que a primeira frase dessa nova lista seja diferente da última frase da lista passada.
+- **RN61** — A lista de mensagens de boas-vindas rotativas contém 9 mensagens embutidas no app:
+  - *"Eu te amo, mãe! ❤️"*
   - *"Que seu dia seja leve e cheio de bons encontros."*
-  - *"Você faz a diferença na vida de muita gente."*
   - *"Respire fundo: hoje vai ser um bom dia."*
   - *"Obrigado por cuidar de tantas pessoas com tanto carinho."*
-- **RN62** — A mensagem é escolhida aleatoriamente, sem repetir a anterior (o índice da última fica em `config`). Saudação por horário (Bom dia/Boa tarde/Boa noite) continua acima da mensagem. A lista é fixa no código no MVP (sem edição em Configurações).
+  - *"Você faz a diferença na vida de muita gente."*
+  - *"Cada pessoa tem sua história, e você ajuda a torná-la mais leve."*
+  - *"Seu trabalho faz diferença, mesmo quando você não percebe."*
+  - *"Acolher é respeitar o tempo e a história de cada pessoa."*
+  - *"Não se esqueça de cuidar de quem também cuida."*
+- **RN62** — A fila de mensagens restantes (`boas_vindas_fila`) e o índice da última exibida (`boas_vindas_ultimo_indice`) persistem na tabela `config`. Saudação por horário (Bom dia/Boa tarde/Boa noite) continua acima da mensagem. A lista é fixa no código no MVP (sem edição em Configurações).
 
 ### 5.8 Anamnese do paciente
 - **RN65** — O perfil do paciente (T07) tem a seção **"Anamnese"** entre o cabeçalho com o nome e o histórico de sessões.
@@ -241,7 +246,24 @@
 - **RN74** — Editar, remarcar e excluir (com confirmação) agendamentos.
 - **RN75** — O painel inicial (T04) mostra **"Sessões de hoje"** com horário e nome do paciente.
 - **RN76** — Ao clicar em um agendamento passado, oferecer "Registrar sessão", abrindo o modal T08 com a data preenchida. Agendamento e registro de sessão são independentes.
-- **RN77** — O perfil do paciente mostra o próximo agendamento dele. Sem lembretes/notificações externas e sem recorrência no MVP (a recorrência é a grade semanal da Fase 2).
+- **RN77** — O perfil do paciente mostra o próximo agendamento dele e seus horários semanais fixos (RN95). Sem lembretes/notificações externas.
+
+### 5.10 Financeiro (Fase 2 — F9)
+- **RN80** — Item **"Financeiro"** no menu lateral (T12). Registra lançamentos do tipo **`entrada`** (recebimentos de sessões/atendimentos) ou **`gasto`** (despesas do consultório), já quitados no ato do lançamento.
+- **RN81** — Campos de cada lançamento: **data** (obrigatória, ISO `AAAA-MM-DD`, padrão hoje), **tipo** (`entrada` | `gasto`, obrigatório), **valor** em centavos (`> 0`, obrigatório), **descrição** (obrigatória, ≤ 200 caracteres), **forma de pagamento** opcional (`pix`, `dinheiro`, `cartao`, `transferencia`, `convenio`) e **paciente** opcional (`paciente_id`, aplicável às entradas; se o paciente for excluído, o lançamento permanece com `paciente_id = NULL` via `ON DELETE SET NULL`).
+- **RN82** — Ao selecionar um paciente em uma entrada, se ele possuir `valor_sessao_centavos` cadastrado e o campo de valor estiver vazio, preencher automaticamente como sugestão editável.
+- **RN83** — **Resumo mensal:** na tela T12, seletor de mês/ano (com botões "Mês anterior", "Mês atual" e "Próximo mês") exibindo três cards consolidados do mês selecionado: **Total de Entradas**, **Total de Gastos** e **Saldo do Mês** (`entradas - gastos`), além da contagem de lançamentos.
+- **RN84** — Lista de lançamentos do mês selecionado em ordem cronológica decrescente (`data DESC, criado_em DESC`), com filtro por tipo (`Todos` | `Entradas` | `Gastos`) e busca por descrição ou nome do paciente.
+- **RN85** — Permitir criar, editar e excluir (com confirmação) qualquer lançamento financeiro.
+- **RN86** — Os lançamentos financeiros fazem parte do banco SQLCipher e são incluídos automaticamente no backup `.lcbackup` (RN56).
+
+### 5.11 Grade semanal de horários fixos (Fase 2 — F9)
+- **RN90** — Permite cadastrar os **horários semanais fixos** de cada paciente na tabela `horarios_semanais`.
+- **RN91** — Campos de cada horário fixo: **paciente** (`paciente_id`, obrigatório, `ON DELETE CASCADE`), **dia da semana** (`dia_semana`, obrigatório, `0` = Domingo a `6` = Sábado), **horário de início** (`hora_inicio`, obrigatório, `HH:MM`), **duração** (`duracao_min`, padrão 50 min, entre 1 e 720) e **observação** curta opcional (≤ 200 caracteres).
+- **RN92** — A tela de **Agenda (T11)** exibe a aba/visão **"Grade Fixa"** (além de `Semana` e `Mês`), organizando os horários fixos por dia da semana (Segunda a Domingo) e permitindo criar, editar e excluir (com confirmação) horários fixos.
+- **RN93** — Detecção de conflitos na grade fixa: avisar (sem bloquear) quando dois horários fixos no mesmo `dia_semana` tiverem sobreposição de horário.
+- **RN94** — Botão **"Aplicar grade na semana"** na Agenda (T11): gera os agendamentos pontuais (`agendamentos`) para os dias da semana selecionada a partir dos horários fixos de pacientes ativos, ignorando sem duplicar aqueles que já possuam agendamento para o mesmo paciente, data e horário de início.
+- **RN95** — O **perfil do paciente (T07)** exibe os horários semanais fixos daquele paciente no cabeçalho/resumo de atendimento.
 
 ---
 
@@ -335,13 +357,41 @@ CREATE TABLE agendamentos (
 );
 CREATE INDEX idx_agendamentos_data ON agendamentos(data, hora_inicio);
 
+-- F9: financeiro
+CREATE TABLE lancamentos_financeiros (
+  id TEXT PRIMARY KEY,
+  paciente_id TEXT REFERENCES pacientes(id) ON DELETE SET NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('entrada','gasto')),
+  data TEXT NOT NULL,                 -- ISO AAAA-MM-DD
+  valor_centavos INTEGER NOT NULL CHECK (valor_centavos > 0),
+  descricao TEXT NOT NULL CHECK (length(descricao) <= 200),
+  forma_pagamento TEXT CHECK (forma_pagamento IN ('pix','dinheiro','cartao','transferencia','convenio')),
+  criado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_lancamentos_data ON lancamentos_financeiros(data DESC);
+CREATE INDEX idx_lancamentos_paciente ON lancamentos_financeiros(paciente_id);
+
+-- F9: grade semanal de horários fixos
+CREATE TABLE horarios_semanais (
+  id TEXT PRIMARY KEY,
+  paciente_id TEXT NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  dia_semana INTEGER NOT NULL CHECK (dia_semana >= 0 AND dia_semana <= 6),
+  hora_inicio TEXT NOT NULL,          -- HH:MM
+  duracao_min INTEGER NOT NULL DEFAULT 50,
+  observacao TEXT CHECK (length(observacao) <= 200),
+  criado_em TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_horarios_semanais_dia ON horarios_semanais(dia_semana, hora_inicio);
+CREATE INDEX idx_horarios_semanais_paciente ON horarios_semanais(paciente_id);
+
 CREATE TABLE schema_migrations (versao INTEGER PRIMARY KEY, aplicado_em TEXT NOT NULL);
 ```
 
 **Observações:**
 - `PRAGMA foreign_keys = ON;` em toda conexão.
 - Datas e horários em ISO 8601, no horário local.
-- **Fase 2** (não criar agora, apenas não bloquear): tabelas `lancamentos_financeiros` e `horarios_semanais`, ambas com `paciente_id` opcional.
 
 ---
 
@@ -384,7 +434,7 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 
 ---
 
-## 8. Telas (Fase 1)
+## 8. Telas (Fases 1 e 2)
 
 | # | Tela | Conteúdo principal |
 |---|---|---|
@@ -394,10 +444,11 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 | T04 | Início (painel) | Saudação + mensagem de boas-vindas rotativa (RN60); sessões de hoje (RN75); aniversariantes do dia + próximos 7 dias; atalhos (Novo paciente, Registrar sessão, Buscar paciente, Documentos); total de ativos; último backup + botão |
 | T05 | Pacientes (lista) | Busca, filtro de status, botão "Novo paciente"; colunas: nome, idade, telefone, última sessão |
 | T06 | Paciente (form) | Criar/editar, com campos agrupados: Dados pessoais · Contato · Família/Responsável · Atendimento · Observações |
-| T07 | Paciente (perfil) | Cabeçalho (nome, idade, status, contato, próximo agendamento); **seção Anamnese** (RN65); "Nova sessão" em destaque; histórico compacto; abas/seção de dados cadastrais; Mais opções (inativar/reativar/excluir) |
+| T07 | Paciente (perfil) | Cabeçalho (nome, idade, status, contato, próximo agendamento, horários semanais fixos — RN95); **seção Anamnese** (RN65); "Nova sessão" em destaque; histórico compacto; abas/seção de dados cadastrais; Mais opções (inativar/reativar/excluir) |
 | T08 | Sessão (modal) | Data + resumo com contador 0/600; salvar/cancelar |
 | T09 | Documentos | Categorias (abas ou lateral), busca, botão "Enviar documento" (também arrastar e soltar), lista com ações |
-| T11 | Agenda | Visão semana/mês, "Hoje", navegação, "Novo agendamento"; modal com paciente, data, horário, duração, observação (RN70–RN77) |
+| T11 | Agenda | Visão semana/mês/grade fixa (RN92), "Hoje", navegação, "Novo agendamento", "Aplicar grade na semana" (RN94); modais de agendamento e horário fixo (RN70–RN77, RN90–RN95) |
+| T12 | Financeiro | Resumo mensal (entradas, gastos, saldo), seletor de mês/ano, filtro por tipo e busca, lista de lançamentos e modal de novo/editar lançamento (RN80–RN86) |
 | T10 | Configurações | Trocar senha · Backup/Restaurar · Mensagem de aniversário · Gerenciar categorias · Sobre/segurança |
 
 "Registrar sessão" no painel abre uma busca rápida de paciente e depois o modal T08.
@@ -446,3 +497,10 @@ Chave de recuperação ──Argon2id(salt2)──► KEK_rec ──────
 | 02/11/2026 | Mensagens de boas-vindas rotativas a cada login, incluindo "Eu te amo, mãe" (RN60–RN62) | Pedido do desenvolvedor |
 | 02/11/2026 | Anexo de anamnese ao paciente entra no escopo (só arquivo, sem formulário), seção entre o nome e o histórico (RN65–RN69) | Pedido da usuária; revoga a exclusão anterior. Fica na F6 (reaproveita a criptografia de arquivos) |
 | 02/11/2026 | Agenda (data + horário das sessões) antecipada da Fase 2 para a F4.5 (RN70–RN77) | Pedido da usuária |
+| 03/11/2026 | Atualização das mensagens rotativas de boas-vindas: fixadas 9 mensagens personalizadas e remoção das não listadas (RN61) | Pedido da usuária |
+| 03/11/2026 | Ciclo embaralhado de boas-vindas: consome toda a lista de frases antes de repetir, e novo ciclo garante que a 1ª frase seja diferente da última do ciclo passado (RN60, RN62) | Pedido do usuário |
+| 06/11/2026 | Alterar/mudar logo do app na barra de tarefas e na janela incluído no escopo da fase F8 (F8-T4) | Pedido do usuário |
+| 06/11/2026 | Geração do instalador Windows final e instalação movidos para o final da Fase 9 (F9-T4 e F9-T5) | Pedido do usuário: gerar apenas quando tudo estiver pronto |
+| 06/11/2026 | Financeiro (F9-T1/F9-T2): modelo simples e direto (Data, Tipo Entrada/Gasto, Valor em centavos, Descrição, Forma de pagamento opcional e Paciente opcional para entradas, já quitados no ato) + resumo mensal consolidado (RN80–RN86) | Levantamento da Fase 2 (F9-T1) |
+| 06/11/2026 | Grade Semanal Fixa (F9-T1/F9-T3): aba "Grade Fixa" dentro da Agenda (T11) + exibição no perfil do paciente (T07) + botão "Aplicar grade na semana" para gerar agendamentos da semana sem duplicar (RN90–RN95) | Levantamento da Fase 2 (F9-T1) |
+| 06/11/2026 | Sistema operacional da usuária confirmado como Windows 10/11 64-bit para geração de artefatos e roteiro de instalação final (F9-T4 e F9-T5) | Levantamento da Fase 2 (F9-T1) |

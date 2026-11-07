@@ -16,7 +16,11 @@ Bem-vindo à pasta de documentação do **Sistema de Pacientes e Documentos (LC 
 | Documento | Conteúdo |
 |---|---|
 | [`01-visao-do-produto.md`](01-visao-do-produto.md) | Problema, usuária atendida, premissas 100% offline e limites de escopo. |
-| [`02-requisitos.md`](02-requisitos.md) | Requisitos funcionais (RF), não funcionais (RNF) e índice das regras de negócio (RN01–RN77). |
+| [`02-requisitos.md`](02-requisitos.md) | Requisitos funcionais (RF), não funcionais (RNF) e índice das regras de negócio (RN01–RN95). |
 | [`03-arquitetura.md`](03-arquitetura.md) | Diagrama de camadas, fluxo de dados e Registros de Decisões de Arquitetura (ADR-001 a ADR-006). |
 | [`04-riscos-e-seguranca.md`](04-riscos-e-seguranca.md) | Matriz de riscos do projeto (R1 a R6), impactos, mitigações e desfechos medidos. |
+| [`05-revisao-ux-guiada.md`](05-revisao-ux-guiada.md) | Relatório da sessão de revisão de UX guiada com a usuária e ajustes aplicados. |
+| [`06-auditoria-seguranca.md`](06-auditoria-seguranca.md) | Relatório de auditoria de segurança (zero rede, logs limpos, `cargo audit` e `npm audit`). |
+| [`07-entrega-e-instalacao-final.md`](07-entrega-e-instalacao-final.md) | Roteiro e checklist de instalação final, criação assistida de senha, impressão da chave e primeiro backup. |
+| [`guia-backup.md`](guia-backup.md) / [`guia-backup.pdf`](guia-backup.pdf) | Guia rápido de 1 página para a usuária: "Como fazer backup e restaurar". |
 | [`exemplos/`](exemplos/) | Dados de referência sintéticos e transcrições de questionário para testes. |

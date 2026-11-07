@@ -20,6 +20,8 @@
 | **RF08** | Anexar arquivos de ficha de anamnese cifrados diretamente no perfil do paciente | Anamnese / Arquivos | Alta |
 | **RF09** | Armazenar e organizar documentos gerais em categorias com abertura segura | Documentos | Média |
 | **RF10** | Gerar arquivo de backup `.lcbackup` criptografado e restaurar dados com salvaguarda prévia | Backup | Alta |
+| **RF11** | Registrar entradas e gastos financeiros com vínculo opcional ao paciente e resumo mensal consolidado | Financeiro | Média |
+| **RF12** | Gerenciar grade semanal de horários fixos por paciente e aplicar horários na agenda da semana | Grade Semanal | Média |
 
 ---
 
@@ -38,7 +40,7 @@
 
 ---
 
-## 3. Índice das Regras de Negócio (RN01 a RN77)
+## 3. Índice das Regras de Negócio (RN01 a RN95)
 
 As regras de negócio detalhadas, seus critérios de precedência e exceções encontram-se na
 **Seção 5 de [`Planejamento/01_FONTE_DA_VERDADE.md`](../Planejamento/01_FONTE_DA_VERDADE.md)**:
@@ -52,3 +54,5 @@ As regras de negócio detalhadas, seus critérios de precedência e exceções e
 - **RN60 a RN62:** Mensagens rotativas de boas-vindas a cada login.
 - **RN65 a RN69:** Anexo e consulta de arquivos de anamnese no perfil.
 - **RN70 a RN77:** Agendamento de sessões, visualização semanal/mensal e detecção de conflitos de horários.
+- **RN80 a RN86:** Lançamentos financeiros (entradas e gastos), vínculo opcional ao paciente e resumo mensal.
+- **RN90 a RN95:** Grade semanal de horários fixos por paciente, detecção de conflitos e aplicação na semana.

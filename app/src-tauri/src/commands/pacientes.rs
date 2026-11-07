@@ -559,7 +559,22 @@ pub fn executar_paciente_excluir(
         ));
     }
 
+    // Busca os IDs dos anexos de anamnese para limpar os arquivos cifrados do disco (RN67)
+    let ids_anamneses: Vec<String> = {
+        let mut stmt = conn.prepare("SELECT id FROM anamneses WHERE paciente_id = ?1;")?;
+        let rows = stmt.query_map([id_limpo], |r| r.get(0))?;
+        rows.filter_map(|r| r.ok()).collect()
+    };
+
     conn.execute("DELETE FROM pacientes WHERE id = ?1;", [id_limpo])?;
+
+    for id_anam in ids_anamneses {
+        let caminho = crate::files::caminho_arquivo_cifrado(&state.data_dir, &id_anam);
+        if caminho.exists() {
+            crate::files::sobrescrever_e_remover_arquivo(&caminho);
+        }
+    }
+
     Ok(())
 }
 
